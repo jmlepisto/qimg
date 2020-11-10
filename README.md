@@ -16,9 +16,11 @@ Mostly, for fun. Though I've sincerely had a few occansions where it would've be
 
 #### Cool, how do I use Qimg?
 `qimg -h` will teach you the basics. There aren't any fancy features (yet) so basic usage is `qimg [option]... input...`.
+- `-b <framebuffer>` selects which frambuffer to use. Defaults to the first one found on the system.
 - `-c` will try to hide the terminal cursor and prevent it from refreshing on top of the image.
 - `-r` will repaint the image continuously to prevent anything else from refreshing on top of the image.
-
+- `-pos <position>` is used set image position.
+- `-bg <color>` is used to set background color.
 Please note that Qimg will ***NOT*** work if an Xorg session is active on the current TTY. 
 
 Exits via `SIGINT` or `SIGTERM` will trigger cleanups and restore terminal cursor visibility.
