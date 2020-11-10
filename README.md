@@ -7,7 +7,7 @@ Without any windowing systems or external dependencies Qimg can be used to displ
 
 #### How?
 Linux has provided generic gramebuffer support since kernel 2.1.109. The Linux framebuffer (**fbdev**) is an abstraction layer providing 
-access to hardware-independent graphics via. Userspace access is also supported via */dev/fb** device files.
+access to hardware-independent graphics. Userspace access is also supported via */dev/fb** device files.
 
 Qimg takes advantage of Linux framebuffer to simply draw out the images as raw pixels on the screen - no tricks, treats or windowing contexts included.
 
