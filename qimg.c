@@ -83,6 +83,14 @@ typedef struct im_ {
     uint8_t* pixels;    /* image data pointer */
 } qimq_image;
 
+typedef enum pos_ {
+    POS_CENTERED,
+    POS_TOP_LEFT,
+    POS_TOP_RIGHT,
+    POS_BOTTOM_RIGHT,
+    POS_BOTTOM_LEFT
+} qimg_position;
+
 static volatile bool run = true; /* used to go through cleanup on exit */
 
 qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y);
@@ -90,7 +98,7 @@ qimq_image qimg_load_image(char* input_path);
 qimg_fb qimg_open_framebuffer(int idx);
 void qimg_free_framebuffer(qimg_fb* fb);
 void qimg_free_image(qimq_image* im);
-void qimg_draw_image(qimq_image* im, qimg_fb* fb, bool repaint);
+void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, bool repaint);
 
 int get_default_framebuffer_idx(void);
 void set_cursor_visibility(bool blink);
@@ -145,16 +153,42 @@ qimg_fb qimg_open_framebuffer(int idx) {
     return fb;
 }
 
-void qimg_draw_image(qimq_image* im, qimg_fb* fb, bool repaint) {
+void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos,
+                     bool repaint) {
     char* buf = malloc(fb->size);
     qimg_color c;
     int offs;
-    for (int x = 0; x < fb->res.x; ++x) { /* This is embarassingly parallel */
-        for (int y = 0; y < fb->res.y; ++y) {
-            if (x > im->res.x || y > im->res.y)
+    int x, y;
+    for (int x_ = 0; x_ < fb->res.x; ++x_) { /* This is embarassingly parallel */
+        for (int y_ = 0; y_ < fb->res.y; ++y_) {
+            switch (pos) {
+            case POS_TOP_LEFT:
+                x = x_;
+                y = y_;
+                break;
+            case POS_TOP_RIGHT:
+                x = x_ - (fb->res.x - im->res.x);
+                y = y_;
+                break;
+            case POS_BOTTOM_RIGHT:
+                x = x_ - (fb->res.x - im->res.x);
+                y = y_ - (fb->res.y - im->res.y);
+                break;
+            case POS_BOTTOM_LEFT:
+                x = x_;
+                y = y_ - (fb->res.y - im->res.y);
+                break;
+            case POS_CENTERED:
+                x = x_ - ((fb->res.x / 2) - (im->res.x / 2));
+                y = y_ - ((fb->res.y / 2) - (im->res.y / 2));
+                break;
+            }
+
+            if (x > im->res.x || y > im->res.y || x < 0 || y < 0)
                 continue;
+
             c = qimg_get_pixel_color(im, x, y);
-            offs = (y * fb->res.x + x) * 4;
+            offs = (y_ * fb->res.x + x_) * 4;
             buf[offs + 0] = (char) c.b;
             buf[offs + 1] = (char) c.g;
             buf[offs + 2] = (char) c.r;
@@ -213,17 +247,32 @@ void print_help() {
            "\n"
            "Usage: qimg [OPTION]... INPUT...\n"
            "\n"
-           "Options:\n"
-           "-h,             Print this help\n"
-           "-b <index>,     Use framebuffer device with given index\n"
-           "-c,             Hide terminal cursor\n"
+           "General options:\n"
+           "-h,             Print this help.\n"
+           "-b <index>,     Use framebuffer device with given index.\n"
+           "                Default is to use one found with the lowest index.\n"
+           "-c,             Hide terminal cursor.\n"
            "-r,             Keep repainting the image. If hiding the cursor\n"
            "                fails, this will certainly work for keeping the\n"
-           "                image on top\n");
+           "                image on top.\n"
+           "\n"
+           "Image layout:\n"
+           "-pos <position> Draw the image in given position. Possible values:\n"
+           "                0   -   centered\n"
+           "                1   -   top left (default)\n"
+           "                2   -   top right\n"
+           "                3   -   bottom right\n"
+           "                4   -   bottom left\n"
+           "-bg <color>     Fill background with color. Possible values:\n"
+           "                0   -   black (default)\n"
+           "                1   -   white\n"
+           "                2   -   red\n"
+           "                3   -   green\n"
+           "                4   -   blue\n");
 }
 
 void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
-                     bool* refresh, bool* hide_cursor) {
+                     bool* refresh, bool* hide_cursor, qimg_position* pos) {
     assertf(argc > 1, "Arguments missing");
     int opts = 0;
     for (int i = 1; i < argc; ++i) {
@@ -238,8 +287,19 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
             ++opts;
             *refresh = true;
         } else if (strcmp(argv[i], "-c") == 0) {
+            ++opts;
             *hide_cursor = true;
-        } else if (strcmp(argv[i], "-h") == 0) {
+        } else if (strcmp(argv[i], "-pos") == 0) {
+            ++opts;
+            if (argc > (++i)) {
+                ++opts;
+                int temp = atoi(argv[i]);
+                *pos = (qimg_position) temp;
+            }
+        }
+
+
+        else if (strcmp(argv[i], "-h") == 0) {
             print_help();
             exit(0);
         }
@@ -254,7 +314,9 @@ int main(int argc, char *argv[]) {
     char* input_path = NULL;
     bool repaint = false;
     bool hide_cursor = false;
-    parse_arguments(argc, argv, &fb_idx, &input_path, &repaint, &hide_cursor);
+    qimg_position pos = POS_TOP_LEFT;
+    parse_arguments(argc, argv, &fb_idx, &input_path, &repaint, &hide_cursor,
+                    &pos);
 
     assertf(input_path, "No input file");
     if (fb_idx == -1)
@@ -269,7 +331,7 @@ int main(int argc, char *argv[]) {
 
     /* Fasten your seatbelts */
     if (hide_cursor) set_cursor_visibility(false);
-    qimg_draw_image(&im, &fb, repaint);
+    qimg_draw_image(&im, &fb, pos, repaint);
 
     /* Pause to keep terminal cursor hidden */
     /* Pause will return when a signal is caught AND handled */
