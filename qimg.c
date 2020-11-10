@@ -95,7 +95,6 @@ void qimg_draw_image(qimq_image* im, qimg_fb* fb, bool repaint);
 
 int get_default_framebuffer_idx(void);
 void set_cursor_visibility(bool blink);
-void enable_cursor(void);
 void interrupt_handler(int);
 void print_help(void);
 
@@ -204,10 +203,6 @@ void set_cursor_visibility(bool visible) {
     if (visible) printf(CUR_SHOW);
     else printf(CUR_HIDE);
     fflush(stdout);
-}
-
-void enable_cursor() {
-    set_cursor_visibility(true);
 }
 
 void interrupt_handler(int dummy) {
