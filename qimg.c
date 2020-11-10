@@ -89,7 +89,7 @@ typedef enum pos_ {
     POS_TOP_RIGHT,
     POS_BOTTOM_RIGHT,
     POS_BOTTOM_LEFT
-} qimg_position;
+} qimg_position;        /* image position */
 
 typedef enum bg_ {
     BG_BLACK,
@@ -98,7 +98,7 @@ typedef enum bg_ {
     BG_GREEN,
     BG_BLUE,
     BG_DISABLED
-} qimg_bg;
+} qimg_bg;              /* background color */
 
 static volatile bool run = true; /* used to go through cleanup on exit */
 
