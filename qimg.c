@@ -33,7 +33,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include <assert.h>
 #include <fcntl.h>
 #include <glob.h>
 #include <stdint.h>
