@@ -91,14 +91,25 @@ typedef enum pos_ {
     POS_BOTTOM_LEFT
 } qimg_position;
 
+typedef enum bg_ {
+    BG_BLACK,
+    BG_WHITE,
+    BG_RED,
+    BG_GREEN,
+    BG_BLUE,
+    BG_DISABLED
+} qimg_bg;
+
 static volatile bool run = true; /* used to go through cleanup on exit */
 
 qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y);
+qimg_color qimg_get_bg_color(qimg_bg bg);
 qimq_image qimg_load_image(char* input_path);
 qimg_fb qimg_open_framebuffer(int idx);
 void qimg_free_framebuffer(qimg_fb* fb);
 void qimg_free_image(qimq_image* im);
-void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, bool repaint);
+void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
+                     bool repaint);
 
 int get_default_framebuffer_idx(void);
 void set_cursor_visibility(bool blink);
@@ -153,7 +164,7 @@ qimg_fb qimg_open_framebuffer(int idx) {
     return fb;
 }
 
-void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos,
+void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
                      bool repaint) {
     char* buf = malloc(fb->size);
     qimg_color c;
@@ -184,10 +195,16 @@ void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos,
                 break;
             }
 
-            if (x > im->res.x || y > im->res.y || x < 0 || y < 0)
-                continue;
+            if (x >= im->res.x || y >= im->res.y || x < 0 || y < 0) {
+                if (bg == BG_DISABLED) {
+                    continue; /* Keep the framebuffer as-is */
+                } else {
+                    c = qimg_get_bg_color(bg);
+                }
+            } else {
+                c = qimg_get_pixel_color(im, x, y);
+            }
 
-            c = qimg_get_pixel_color(im, x, y);
             offs = (y_ * fb->res.x + x_) * 4;
             buf[offs + 0] = (char) c.b;
             buf[offs + 1] = (char) c.g;
@@ -202,7 +219,7 @@ void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos,
 }
 
 qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y) {
-    assertf(x <= im->res.x && y <= im->res.y, "Image coordinates out of bounds");
+    assertf(x < im->res.x && y < im->res.y, "Image coordinates out of bounds");
     uint8_t* offset = im->pixels + (y * im->res.x + x) * im->c;
     qimg_color color;
 
@@ -218,6 +235,31 @@ qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y) {
         color.a = im->c >= 4 ? offset[3] : 0xff;
     }
     return color;
+}
+
+qimg_color qimg_get_bg_color(qimg_bg bg) {
+    qimg_color bg_color;
+    switch (bg) {
+    case BG_BLACK:
+        bg_color = (qimg_color){0, 0, 0, 0xff};
+        break;
+    case BG_WHITE:
+        bg_color = (qimg_color){0xff, 0xff, 0xff, 0xff};
+        break;
+    case BG_RED:
+        bg_color = (qimg_color){0xff, 0, 0, 0xff};
+        break;
+    case BG_GREEN:
+        bg_color = (qimg_color){0, 0xff, 0, 0xff};
+        break;
+    case BG_BLUE:
+        bg_color = (qimg_color){0, 0, 0xff, 0xff};
+        break;
+    default:
+        bg_color = (qimg_color){0, 0, 0, 0xff};
+        break;
+    }
+    return bg_color;
 }
 
 qimq_image qimg_load_image(char* input_path) {
@@ -264,15 +306,17 @@ void print_help() {
            "                3   -   bottom right\n"
            "                4   -   bottom left\n"
            "-bg <color>     Fill background with color. Possible values:\n"
-           "                0   -   black (default)\n"
+           "                0   -   black\n"
            "                1   -   white\n"
            "                2   -   red\n"
            "                3   -   green\n"
-           "                4   -   blue\n");
+           "                4   -   blue\n"
+           "                5   -   disabled (transparent, default)\n");
 }
 
 void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
-                     bool* refresh, bool* hide_cursor, qimg_position* pos) {
+                     bool* refresh, bool* hide_cursor, qimg_position* pos,
+                     qimg_bg* bg) {
     assertf(argc > 1, "Arguments missing");
     int opts = 0;
     for (int i = 1; i < argc; ++i) {
@@ -296,6 +340,13 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                 int temp = atoi(argv[i]);
                 *pos = (qimg_position) temp;
             }
+        } else if (strcmp(argv[i], "-bg") == 0) {
+            ++opts;
+            if (argc > (++i)) {
+                ++opts;
+                int temp = atoi(argv[i]);
+                *bg = (qimg_bg) temp;
+            }
         }
 
 
@@ -315,8 +366,9 @@ int main(int argc, char *argv[]) {
     bool repaint = false;
     bool hide_cursor = false;
     qimg_position pos = POS_TOP_LEFT;
+    qimg_bg bg = BG_DISABLED;
     parse_arguments(argc, argv, &fb_idx, &input_path, &repaint, &hide_cursor,
-                    &pos);
+                    &pos, &bg);
 
     assertf(input_path, "No input file");
     if (fb_idx == -1)
@@ -331,7 +383,7 @@ int main(int argc, char *argv[]) {
 
     /* Fasten your seatbelts */
     if (hide_cursor) set_cursor_visibility(false);
-    qimg_draw_image(&im, &fb, pos, repaint);
+    qimg_draw_image(&im, &fb, pos, bg, repaint);
 
     /* Pause to keep terminal cursor hidden */
     /* Pause will return when a signal is caught AND handled */
