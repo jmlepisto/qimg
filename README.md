@@ -19,6 +19,8 @@ Mostly, for fun. Though I've sincerely had a few occansions where it would've be
 - `-c` will try to hide the terminal cursor and prevent it from refreshing on top of the image.
 - `-r` will repaint the image continuously to prevent anything else from refreshing on top of the image.
 
+Please note that Qimg will ***NOT*** work if an Xorg session is active on the current TTY. 
+
 Exits via `SIGINT` or `SIGTERM` will trigger cleanups and restore terminal cursor visibility.
 
 #### How to get Qimg
