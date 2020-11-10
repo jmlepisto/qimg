@@ -173,10 +173,18 @@ qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y) {
     assertf(x <= im->res.x && y <= im->res.y, "Image coordinates out of bounds");
     uint8_t* offset = im->pixels + (y * im->res.x + x) * im->c;
     qimg_color color;
-    color.r = offset[0];
-    color.g = offset[1];
-    color.b = offset[2];
-    color.a = im->c >= 4 ? offset[3] : 0xff;
+
+    if (im->c < 3) {
+        color.r = offset[0];
+        color.g = offset[0];
+        color.b = offset[0];
+        color.a = im->c >= 2 ? offset[1] : 0xff;
+    } else {
+        color.r = offset[0];
+        color.g = offset[1];
+        color.b = offset[2];
+        color.a = im->c >= 4 ? offset[3] : 0xff;
+    }
     return color;
 }
 
