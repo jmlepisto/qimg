@@ -59,7 +59,7 @@
     fprintf(stderr, (fmt_ "\n"), ##__VA_ARGS__)
 #define assertf(A, fmt_, ...)\
     if (!(A)) {log_msg("[ERROR]: " fmt_, ##__VA_ARGS__); exit(EXIT_FAILURE);}\
-    void f(void) /* To enforce semicolon and precent warnings */
+    void f(void) /* To enforce semicolon and prevent warnings */
 
 typedef enum { false, true } bool;
 
@@ -468,9 +468,6 @@ int main(int argc, char *argv[]) {
                     &hide_cursor, &pos, &bg, &slide_delay_s);
 
     assertf(n_inputs, "No input file");
-
-
-
     if (fb_idx == -1)
         fb_idx = get_default_framebuffer_idx();
     if (slide_delay_s == 0 && n_inputs > 1) /* Default interval for slideshows */
