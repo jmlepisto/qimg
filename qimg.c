@@ -115,16 +115,83 @@ typedef enum bg_ {
 static volatile bool run = true; /* used to go through cleanup on exit */
 static clock_t begin_clk;
 
+/**
+ * @brief Get color of an image at given position
+ * @param im input image
+ * @param x pos x
+ * @param y pos y
+ * @return color of the given point
+ */
 qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y);
+
+/**
+ * @brief Get color values for background color enumeration
+ * @param bg background color value
+ * @return color value
+ */
 qimg_color qimg_get_bg_color(qimg_bg bg);
+
+/**
+ * @brief Load image at given path
+ * @param input_path input path
+ * @return loaded image, exits if loading errors
+ */
 qimq_image qimg_load_image(char* input_path);
+
+/**
+ * @brief Load multiple images to a collection
+ * @param input_paths input path vector
+ * @param n_inputs number of inputs
+ * @return collection of images
+ */
 qimg_collection qimg_load_images(char** input_paths, int n_inputs);
+
+/**
+ * @brief Open framebuffer with given index
+ * @param idx framebuffer index (/dev/fb<idx>)
+ * @return framebuffer instance
+ */
 qimg_fb qimg_open_framebuffer(int idx);
+
+/**
+ * @brief Get milliseconds since program start
+ * @return milliseconds from start
+ */
 uint32_t qimg_get_millis(void);
+
+/**
+ * @brief Fill the framebuffer with black
+ * @param fb target framebuffer
+ */
 void qimg_clear_framebuffer(qimg_fb* fb);
+
+/**
+ * @brief Frees and unmaps the framebuffer instance
+ * @param fb target framebuffer
+ */
 void qimg_free_framebuffer(qimg_fb* fb);
+
+/**
+ * @brief Frees all images in a collection
+ * @param col target collection
+ */
 void qimg_free_collection(qimg_collection* col);
+
+/**
+ * @brief Frees an image from memory
+ * @param im target image
+ */
 void qimg_free_image(qimq_image* im);
+
+/**
+ * @brief qimg_draw_images
+ * @param col
+ * @param fb
+ * @param pos
+ * @param bg
+ * @param repaint
+ * @param delay_s
+ */
 void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
                       qimg_bg bg, bool repaint, int delay_s);
 void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
@@ -490,7 +557,8 @@ int main(int argc, char *argv[]) {
     if (!repaint && hide_cursor) pause();
 
     /* Cleanup */
-    qimg_clear_framebuffer(&fb);
+	if (repaint || hide_cursor)
+    	qimg_clear_framebuffer(&fb);
     if (hide_cursor) set_cursor_visibility(true);
     qimg_free_collection(&col);
     qimg_free_framebuffer(&fb);
