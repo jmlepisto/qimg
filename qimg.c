@@ -204,6 +204,7 @@ void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
 void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
                      bool repaint, int delay_s) {
     char* buf = malloc(fb->size);
+    memcpy(buf, fb->fbdata, fb->size);
     qimg_color c;
     int offs;
     int x, y;
