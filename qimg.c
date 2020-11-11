@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <time.h>
 #include <linux/fb.h>
 
 #define FB_IDX_MAX_SIZE 4
@@ -52,8 +53,13 @@
 #define CUR_SHOW "\e[?25h"
 #define CUR_HIDE "\e[?25l"
 
-#define log_error(M) fprintf(stderr, "[ERROR]: %s\n", M)
-#define assertf(A, M) if (!(A)) {log_error(M); exit(EXIT_FAILURE);} void f(void)
+#define MAX_IMAGES 2
+
+#define log_msg(fmt_, ...)\
+    fprintf(stderr, (fmt_ "\n"), ##__VA_ARGS__)
+#define assertf(A, fmt_, ...)\
+    if (!(A)) {log_msg("[ERROR]: " fmt_, ##__VA_ARGS__); exit(EXIT_FAILURE);}\
+    void f(void) /* To enforce semicolon and precent warnings */
 
 typedef enum { false, true } bool;
 
@@ -70,18 +76,24 @@ typedef struct col_ {
 } qimg_color;
 
 typedef struct fb_ {
-    qimg_resolution res;/* framebuffer resolution */
-    unsigned int size;  /* framebuffer size */
-    int fbfd;           /* framebuffer file descriptor */
-    char* fbdata;       /* framebuffer data pointer */
+    qimg_resolution res;            /* framebuffer resolution */
+    unsigned int size;              /* framebuffer size */
+    int fbfd;                       /* framebuffer file descriptor */
+    char* fbdata;                   /* framebuffer data pointer */
 } qimg_fb;
 
 typedef struct im_ {
-    qimg_resolution res;/* resolution */
-    int c;              /* channels */
-    char _padding[4];   /* guess what */
-    uint8_t* pixels;    /* image data pointer */
+    qimg_resolution res;            /* resolution */
+    int c;                          /* channels */
+    char _padding[4];               /* guess what */
+    uint8_t* pixels;                /* image data pointer */
 } qimq_image;
+
+typedef struct collection_ {
+    int size;                       /* number of images */
+    char _padding[4];               /* yeah */
+    qimq_image images[MAX_IMAGES];  /* image array */
+} qimg_collection;
 
 typedef enum pos_ {
     POS_CENTERED,
@@ -101,15 +113,22 @@ typedef enum bg_ {
 } qimg_bg;              /* background color */
 
 static volatile bool run = true; /* used to go through cleanup on exit */
+static clock_t begin_clk;
 
 qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y);
 qimg_color qimg_get_bg_color(qimg_bg bg);
 qimq_image qimg_load_image(char* input_path);
+qimg_collection qimg_load_images(char** input_paths, int n_inputs);
 qimg_fb qimg_open_framebuffer(int idx);
+uint32_t qimg_get_millis(void);
+void qimg_clear_framebuffer(qimg_fb* fb);
 void qimg_free_framebuffer(qimg_fb* fb);
+void qimg_free_collection(qimg_collection* col);
 void qimg_free_image(qimq_image* im);
+void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
+                      qimg_bg bg, bool repaint, int delay_s);
 void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
-                     bool repaint);
+                     bool repaint, int delay_s);
 
 int get_default_framebuffer_idx(void);
 void set_cursor_visibility(bool blink);
@@ -132,6 +151,10 @@ int get_default_framebuffer_idx() {
 void qimg_free_framebuffer(qimg_fb* fb) {
     munmap(fb->fbdata, fb->size);
     close(fb->fbfd);
+}
+
+uint32_t qimg_get_millis(void) {
+    return (uint32_t)((double)(clock() - begin_clk) / CLOCKS_PER_SEC) * 1000;
 }
 
 qimg_fb qimg_open_framebuffer(int idx) {
@@ -164,8 +187,22 @@ qimg_fb qimg_open_framebuffer(int idx) {
     return fb;
 }
 
+void qimg_clear_framebuffer(qimg_fb* fb) {
+    memset(fb->fbdata, 0, fb->size);
+}
+
+void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
+                      qimg_bg bg, bool repaint, int delay_s) {
+    for (int i = 0; i < col->size; ++i) {
+        qimg_draw_image(&col->images[i], fb, pos, bg, repaint, delay_s);
+        if (!run) /* Draw routine exited via interrupt signal */
+            break;
+    }
+
+}
+
 void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
-                     bool repaint) {
+                     bool repaint, int delay_s) {
     char* buf = malloc(fb->size);
     qimg_color c;
     int offs;
@@ -213,9 +250,19 @@ void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
         }
     }
 
+    uint32_t start_ticks = qimg_get_millis();
     do {
         memcpy(fb->fbdata, buf, fb->size);
-    } while (repaint && run);
+
+        /* Delay set, wait for it to complete */
+        if (delay_s > 0) {
+            if ((qimg_get_millis() - start_ticks) > (delay_s * 1000))
+                break;
+        } else if (!repaint) { /* No delay and no repaint, return immediately */
+            break;
+        }
+
+    } while (run);
 }
 
 qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y) {
@@ -265,13 +312,28 @@ qimg_color qimg_get_bg_color(qimg_bg bg) {
 qimq_image qimg_load_image(char* input_path) {
     qimq_image im;
     im.pixels = stbi_load(input_path, &im.res.x, &im.res.y, &im.c, 0);
-    assertf(im.pixels, "Image loading failed");
+    assertf(im.pixels, "Loading image %s failed", input_path);
     return im;
+}
+
+qimg_collection qimg_load_images(char** input_paths, int n_inputs) {
+    qimg_collection col;
+    int i;
+    for (i = 0; i < n_inputs; ++i) {
+        col.images[i] = qimg_load_image(input_paths[i]);
+    }
+    col.size = i;
+    return col;
 }
 
 void qimg_free_image(qimq_image* im) {
     if (im->pixels)
     free(im->pixels);
+}
+
+void qimg_free_collection(qimg_collection* col) {
+    for (int i = 0; i < col->size; ++i)
+        qimg_free_image(&col->images[i]);
 }
 
 void set_cursor_visibility(bool visible) {
@@ -311,12 +373,23 @@ void print_help() {
            "                2   -   red\n"
            "                3   -   green\n"
            "                4   -   blue\n"
-           "                5   -   disabled (transparent, default)\n");
+           "                5   -   disabled (transparent, default)\n"
+           "\n"
+           "Slideshow options:\n"
+           "-d <delay>      Slideshow interval in seconds (default 5s).\n"
+           "                If used with a single image, the image is displayed\n"
+           "                for <delay> seconds and is implicitly repainted (-r)\n"
+           "                on every frame.\n"
+           "\n"
+           "Generic framebuffer operations:\n"
+           "(Use one at a time, cannot be joined with other operations)\n"
+           "-clear          Clear the framebuffer\n"
+           "\n");
 }
 
 void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
-                     bool* refresh, bool* hide_cursor, qimg_position* pos,
-                     qimg_bg* bg) {
+                     int* n_inputs, bool* refresh, bool* hide_cursor,
+                     qimg_position* pos, qimg_bg* bg, int* slide_delay_s) {
     assertf(argc > 1, "Arguments missing");
     int opts = 0;
     for (int i = 1; i < argc; ++i) {
@@ -324,8 +397,7 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
             ++opts;
             if (argc > (++i)) {
                 ++opts;
-                int temp = atoi(argv[i]);
-                *fb_idx = temp;
+                *fb_idx = atoi(argv[i]);
             }
         } else if (strcmp(argv[i], "-r") == 0) {
             ++opts;
@@ -347,35 +419,65 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                 int temp = atoi(argv[i]);
                 *bg = (qimg_bg) temp;
             }
+        } else if (strcmp(argv[i], "-d") == 0) {
+            ++opts;
+            if (argc > (++i)) {
+                ++opts;
+                *slide_delay_s = atoi(argv[i]);
+            }
         }
-
-
+        /* These options only work one at a time, exiting after completion */
         else if (strcmp(argv[i], "-h") == 0) {
+            ++opts;
             print_help();
-            exit(0);
+            exit(EXIT_SUCCESS);
+        } else if (strcmp(argv[i], "-clear") == 0) {
+            ++opts;
+            if (*fb_idx == -1)
+                *fb_idx = get_default_framebuffer_idx();
+            qimg_fb fb = qimg_open_framebuffer(*fb_idx);
+            qimg_clear_framebuffer(&fb);
+            exit(EXIT_SUCCESS);
         }
     }
-
-    if (++opts < argc)
-        *input = argv[argc-1];
+    /* We should still have some leftover arguments, these are our inputs */
+    while (++opts < argc) {
+        input[*n_inputs] = argv[opts];
+        ++*n_inputs;
+        assertf(*n_inputs <= MAX_IMAGES, "Too many input images (max %d)",
+                MAX_IMAGES);
+    }
 }
 
 int main(int argc, char *argv[]) {
+
+    /* Record start ticks for timekeeping */
+    begin_clk = clock();
+
+    /* Setup start values for params */
     int fb_idx = -1;
-    char* input_path = NULL;
+    int n_inputs = 0;
+    int slide_delay_s = 0;
+    char* input_paths[MAX_IMAGES];
     bool repaint = false;
     bool hide_cursor = false;
     qimg_position pos = POS_TOP_LEFT;
     qimg_bg bg = BG_DISABLED;
-    parse_arguments(argc, argv, &fb_idx, &input_path, &repaint, &hide_cursor,
-                    &pos, &bg);
 
-    assertf(input_path, "No input file");
+    parse_arguments(argc, argv, &fb_idx, input_paths, &n_inputs, &repaint,
+                    &hide_cursor, &pos, &bg, &slide_delay_s);
+
+    assertf(n_inputs, "No input file");
+
+
+
     if (fb_idx == -1)
         fb_idx = get_default_framebuffer_idx();
+    if (slide_delay_s == 0 && n_inputs > 1) /* Default interval for slideshows */
+        slide_delay_s = 5;
 
     qimg_fb fb = qimg_open_framebuffer(fb_idx);
-    qimq_image im = qimg_load_image(input_path);
+    qimg_collection col = qimg_load_images(input_paths, n_inputs);
 
     /* Setup exit hooks on signals */
     signal(SIGINT, interrupt_handler);
@@ -383,15 +485,16 @@ int main(int argc, char *argv[]) {
 
     /* Fasten your seatbelts */
     if (hide_cursor) set_cursor_visibility(false);
-    qimg_draw_image(&im, &fb, pos, bg, repaint);
+    qimg_draw_images(&col, &fb, pos, bg, repaint, slide_delay_s);
 
     /* Pause to keep terminal cursor hidden */
     /* Pause will return when a signal is caught AND handled */
     if (!repaint && hide_cursor) pause();
 
     /* Cleanup */
+    qimg_clear_framebuffer(&fb);
     if (hide_cursor) set_cursor_visibility(true);
-    qimg_free_image(&im);
+    qimg_free_collection(&col);
     qimg_free_framebuffer(&fb);
 
 	return 0;
