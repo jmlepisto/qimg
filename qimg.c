@@ -117,38 +117,38 @@ static clock_t begin_clk;
 
 /**
  * @brief Get color of an image at given position
- * @param im input image
- * @param x pos x
- * @param y pos y
+ * @param im    input image
+ * @param x     pos x
+ * @param y     pos y
  * @return color of the given point
  */
 qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y);
 
 /**
  * @brief Get color values for background color enumeration
- * @param bg background color value
+ * @param bg    background color value
  * @return color value
  */
 qimg_color qimg_get_bg_color(qimg_bg bg);
 
 /**
  * @brief Load image at given path
- * @param input_path input path
+ * @param input_path    input path
  * @return loaded image, exits if loading errors
  */
 qimq_image qimg_load_image(char* input_path);
 
 /**
  * @brief Load multiple images to a collection
- * @param input_paths input path vector
- * @param n_inputs number of inputs
+ * @param input_paths   input path vector
+ * @param n_inputs      number of inputs
  * @return collection of images
  */
 qimg_collection qimg_load_images(char** input_paths, int n_inputs);
 
 /**
  * @brief Open framebuffer with given index
- * @param idx framebuffer index (/dev/fb<idx>)
+ * @param idx   framebuffer index (/dev/fb<idx>)
  * @return framebuffer instance
  */
 qimg_fb qimg_open_framebuffer(int idx);
@@ -160,40 +160,71 @@ qimg_fb qimg_open_framebuffer(int idx);
 uint32_t qimg_get_millis(void);
 
 /**
+ * @brief Check if given milliseoncds have elapsed since timestamps
+ * @param start     beginning timestamp
+ * @param millis    interval to check
+ * @return true if the given interval has elapsed since beginnind
+ */
+bool qimg_have_millis_elapsed(uint32_t start, uint32_t millis);
+
+/**
+ * @brief Sleeps for given amount of time
+ * @param ms    sleep time in milliseconds
+ */
+void qimg_sleep_ms(uint32_t ms);
+
+/**
  * @brief Fill the framebuffer with black
- * @param fb target framebuffer
+ * @param fb    target framebuffer
  */
 void qimg_clear_framebuffer(qimg_fb* fb);
 
 /**
  * @brief Frees and unmaps the framebuffer instance
- * @param fb target framebuffer
+ * @param fb    target framebuffer
  */
 void qimg_free_framebuffer(qimg_fb* fb);
 
 /**
  * @brief Frees all images in a collection
- * @param col target collection
+ * @param col   target collection
  */
 void qimg_free_collection(qimg_collection* col);
 
 /**
  * @brief Frees an image from memory
- * @param im target image
+ * @param im    target image
  */
 void qimg_free_image(qimq_image* im);
 
 /**
- * @brief qimg_draw_images
- * @param col
- * @param fb
- * @param pos
- * @param bg
- * @param repaint
- * @param delay_s
+ * @brief Draws a collection of images on the framebuffer
+ * @param col       image collection
+ * @param fb        target framebuffer
+ * @param pos       image positioning
+ * @param bg        background style
+ * @param repaint   keep repainting the image
+ * @param delay_s   delay between images
  */
 void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
                       qimg_bg bg, bool repaint, int delay_s);
+
+/**
+ * @brief Draws an image on the framebuffer
+ *
+ * If delay_s <= 0, it is not applied. In this case the image is drawn
+ * indefinitely if repaint is set to true.
+ *
+ * Setting the delay to > 0 impliticlty means that the image will be repainted
+ * on every cycle.
+ *
+ * @param im        image
+ * @param fb        target framebuffer
+ * @param pos       image positioning
+ * @param bg        background style
+ * @param repaint   keep repainting the image
+ * @param delay_s   time to keep the image on the framebuffer.
+ */
 void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
                      bool repaint, int delay_s);
 
@@ -222,6 +253,17 @@ void qimg_free_framebuffer(qimg_fb* fb) {
 
 uint32_t qimg_get_millis(void) {
     return (uint32_t)((double)(clock() - begin_clk) / CLOCKS_PER_SEC) * 1000;
+}
+
+bool qimg_have_millis_elapsed(uint32_t start, uint32_t millis) {
+    return (qimg_get_millis() - start) > millis;
+}
+
+void qimg_sleep_ms(uint32_t ms) {
+    struct timespec ts;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000;
+    nanosleep(&ts, NULL);
 }
 
 qimg_fb qimg_open_framebuffer(int idx) {
@@ -275,6 +317,8 @@ void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
     qimg_color c;
     int offs;
     int x, y;
+    uint32_t delay_ms = delay_s * 1000;
+    bool delay_set = (delay_s > 0);
     for (int x_ = 0; x_ < fb->res.x; ++x_) { /* This is embarassingly parallel */
         for (int y_ = 0; y_ < fb->res.y; ++y_) {
             switch (pos) {
@@ -322,14 +366,22 @@ void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
     do {
         memcpy(fb->fbdata, buf, fb->size);
 
-        /* Delay set, wait for it to complete */
-        if (delay_s > 0) {
-            if ((qimg_get_millis() - start_ticks) > (delay_s * 1000))
+        /* Delay and repaint, check timer and draw again if needed */
+        if (delay_set && repaint) {
+            if (qimg_have_millis_elapsed(start_ticks, delay_ms))
                 break;
-        } else if (!repaint) { /* No delay and no repaint, return immediately */
+        }
+        /* Delay and no repaint, draw once and wait before break */
+        else if (delay_set && !repaint) {
+            uint32_t to_sleep = delay_ms - (qimg_get_millis() - start_ticks);
+            if (to_sleep > 0)
+                qimg_sleep_ms(to_sleep);
             break;
         }
-
+        /* No delay or repaint, break immediately */
+        else if (!delay_set && !repaint) {
+            break;
+        }
     } while (run);
 }
 
@@ -491,7 +543,9 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
             ++opts;
             if (argc > (++i)) {
                 ++opts;
-                *slide_delay_s = atoi(argv[i]);
+                int dly = atoi(argv[i]);
+                assertf(dly >= 0, "Delay must be positive");
+                *slide_delay_s = dly;
             }
         }
         /* These options only work one at a time, exiting after completion */
@@ -552,9 +606,9 @@ int main(int argc, char *argv[]) {
     if (hide_cursor) set_cursor_visibility(false);
     qimg_draw_images(&col, &fb, pos, bg, repaint, slide_delay_s);
 
-    /* Pause to keep terminal cursor hidden */
-    /* Pause will return when a signal is caught AND handled */
-    if (!repaint && hide_cursor) pause();
+    /* if cursor is set to hidden and repaint nor delay is set, the program
+     * shall wait indefinitely for user interrupt */
+    if (!repaint && hide_cursor && !slide_delay_s) pause();
 
     /* Cleanup */
 	if (repaint || hide_cursor)
