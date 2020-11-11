@@ -32,9 +32,9 @@ However, I will be uploading some prebuilt binaries to [releases](https://github
 
 #### Future plans
 
-- Image centering
-- Image resizing
-- Image slideshows
+- Image centering **done**
+- Image resizing 
+- Image slideshows **done**
 
 
 A huge thank you to [stb developers](https://github.com/nothings/stb) for their excellent stb_image library.
