@@ -53,7 +53,7 @@
 #define CUR_SHOW "\e[?25h"
 #define CUR_HIDE "\e[?25l"
 
-#define MAX_IMAGES 2
+#define MAX_IMAGES 24
 
 #define log_msg(fmt_, ...)\
     fprintf(stderr, (fmt_ "\n"), ##__VA_ARGS__)
