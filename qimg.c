@@ -215,9 +215,6 @@ void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
  * If delay_s <= 0, it is not applied. In this case the image is drawn
  * indefinitely if repaint is set to true.
  *
- * Setting the delay to > 0 impliticlty means that the image will be repainted
- * on every cycle.
- *
  * @param im        image
  * @param fb        target framebuffer
  * @param pos       image positioning
@@ -478,7 +475,7 @@ void print_help() {
            "-c,             Hide terminal cursor.\n"
            "-r,             Keep repainting the image. If hiding the cursor\n"
            "                fails, this will certainly work for keeping the\n"
-           "                image on top.\n"
+           "                image on top with the cost of CPU usage.\n"
            "\n"
            "Image layout:\n"
            "-pos <position> Draw the image in given position. Possible values:\n"
@@ -495,11 +492,10 @@ void print_help() {
            "                4   -   blue\n"
            "                5   -   disabled (transparent, default)\n"
            "\n"
-           "Slideshow options:\n"
+           "Slideshow and timing options:\n"
            "-d <delay>      Slideshow interval in seconds (default 5s).\n"
            "                If used with a single image, the image is displayed\n"
-           "                for <delay> seconds and is implicitly repainted (-r)\n"
-           "                on every frame.\n"
+           "                for <delay> seconds.\n"
            "\n"
            "Generic framebuffer operations:\n"
            "(Use one at a time, cannot be joined with other operations)\n"
