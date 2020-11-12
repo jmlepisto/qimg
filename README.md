@@ -32,7 +32,8 @@ Exits via `SIGINT` or `SIGTERM` will trigger cleanups and restore terminal curso
 
 #### How to get Qimg
 Building Qimg is easy as everything needed for the build is provided in this repository. 
-However, I will be uploading some prebuilt binaries to [releases](https://github.com/jjstoo/qimg/releases).
+However, I will be uploading some prebuilt binaries to [releases](https://github.com/jjstoo/qimg/releases)
+and continuous build artifacts can be downloaded from repository [actions](https://github.com/jjstoo/qimg/actions?query=workflow%3ACMake).
 
 
 #### Future plans
