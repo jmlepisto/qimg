@@ -607,8 +607,8 @@ int main(int argc, char *argv[]) {
     if (!repaint && hide_cursor && !slide_delay_s) pause();
 
     /* Cleanup */
-	if (repaint || hide_cursor)
-    	qimg_clear_framebuffer(&fb);
+    if (repaint || hide_cursor)
+        qimg_clear_framebuffer(&fb);
     if (hide_cursor) set_cursor_visibility(true);
     qimg_free_collection(&col);
     qimg_free_framebuffer(&fb);
