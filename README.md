@@ -1,4 +1,9 @@
 # Qimg
+
+[![CodeFactor](https://www.codefactor.io/repository/github/jjstoo/qimg/badge/main)](https://www.codefactor.io/repository/github/jjstoo/qimg/overview/main)
+
+[![CMake build](https://github.com/jjstoo/qimg/workflows/CMake/badge.svg)](https://github.com/jjstoo/qimg/actions?query=workflow%3ACMake)
+
 #### Quick Image Display - Display images in terminal sessions
 
 Stuck in a terminal session and wish to quickly inspect some images? Qimg's got you covered!
@@ -27,7 +32,8 @@ Exits via `SIGINT` or `SIGTERM` will trigger cleanups and restore terminal curso
 
 #### How to get Qimg
 Building Qimg is easy as everything needed for the build is provided in this repository. 
-However, I will be uploading some prebuilt binaries to [releases](https://github.com/jjstoo/qimg/releases).
+However, I will be uploading some prebuilt binaries to [releases](https://github.com/jjstoo/qimg/releases)
+and continuous build artifacts can be downloaded from repository [actions](https://github.com/jjstoo/qimg/actions?query=workflow%3ACMake).
 
 
 #### Future plans
