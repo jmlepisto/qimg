@@ -53,6 +53,7 @@
 #define CUR_SHOW "\e[?25h"
 #define CUR_HIDE "\e[?25l"
 
+/* Adjust according to platform limitations */
 #define MAX_IMAGES 24
 
 #define log_msg(fmt_, ...)\
@@ -602,7 +603,7 @@ int main(int argc, char *argv[]) {
     if (hide_cursor) set_cursor_visibility(false);
     qimg_draw_images(&col, &fb, pos, bg, repaint, slide_delay_s);
 
-    /* if cursor is set to hidden and repaint nor delay is set, the program
+    /* if cursor is set to hidden and no repaint nor delay is set, the program
      * shall wait indefinitely for user interrupt */
     if (!repaint && hide_cursor && !slide_delay_s) pause();
 
@@ -613,5 +614,5 @@ int main(int argc, char *argv[]) {
     qimg_free_collection(&col);
     qimg_free_framebuffer(&fb);
 
-	return 0;
+    return EXIT_SUCCESS;
 }
