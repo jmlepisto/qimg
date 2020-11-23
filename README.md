@@ -39,7 +39,7 @@ and continuous build artifacts can be downloaded from repository [actions](https
 #### Future plans
 
 - Image centering **done**
-- Image resizing 
+- Image resizing **done**
 - Image slideshows **done**
 
 
