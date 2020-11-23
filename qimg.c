@@ -31,7 +31,9 @@
 
 
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image.h>
+#include <stb_image_resize.h>
 
 #include <fcntl.h>
 #include <glob.h>
@@ -88,12 +90,12 @@ typedef struct im_ {
     int c;                          /* channels */
     char _padding[4];               /* guess what */
     uint8_t* pixels;                /* image data pointer */
-} qimq_image;
+} qimg_image;
 
 typedef struct collection_ {
     int size;                       /* number of images */
     char _padding[4];               /* yeah */
-    qimq_image images[MAX_IMAGES];  /* image array */
+    qimg_image images[MAX_IMAGES];  /* image array */
 } qimg_collection;
 
 typedef enum pos_ {
@@ -117,51 +119,62 @@ static volatile bool run = true; /* used to go through cleanup on exit */
 static clock_t begin_clk;
 
 /**
- * @brief Get color of an image at given position
+ * @brief Gets color of an image at given position
  * @param im    input image
  * @param x     pos x
  * @param y     pos y
  * @return color of the given point
  */
-qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y);
+qimg_color qimg_get_pixel_color(qimg_image* im, int x, int y);
 
 /**
- * @brief Get color values for background color enumeration
+ * @brief Gets color values for background color enumeration
  * @param bg    background color value
  * @return color value
  */
 qimg_color qimg_get_bg_color(qimg_bg bg);
 
 /**
- * @brief Load image at given path
+ * @brief Loads image at given path
  * @param input_path    input path
+ * @param dest_size     target size (not applied if NULL)
  * @return loaded image, exits if loading errors
  */
-qimq_image qimg_load_image(char* input_path);
+qimg_image qimg_load_image(char* input_path, qimg_resolution* dest_size);
 
 /**
- * @brief Load multiple images to a collection
+ * @brief Loads multiple images to a collection
  * @param input_paths   input path vector
  * @param n_inputs      number of inputs
+ * @param dest_size     target size (not applied if NULL)
  * @return collection of images
  */
-qimg_collection qimg_load_images(char** input_paths, int n_inputs);
+qimg_collection qimg_load_images(char** input_paths, int n_inputs,
+                                 qimg_resolution* dest_size);
 
 /**
- * @brief Open framebuffer with given index
+ * @brief Resizes image
+ * @param im        image to resize
+ * @param dest_res  target resolution
+ * @return          true if resizing succeeded, false if not
+ */
+bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res);
+
+/**
+ * @brief Opens framebuffer with given index
  * @param idx   framebuffer index (/dev/fb<idx>)
  * @return framebuffer instance
  */
 qimg_fb qimg_open_framebuffer(int idx);
 
 /**
- * @brief Get milliseconds since program start
+ * @brief Gets milliseconds since program start
  * @return milliseconds from start
  */
 uint32_t qimg_get_millis(void);
 
 /**
- * @brief Check if given milliseoncds have elapsed since timestamps
+ * @brief Checks if given milliseoncds have elapsed since timestamps
  * @param start     beginning timestamp
  * @param millis    interval to check
  * @return true if the given interval has elapsed since beginnind
@@ -175,7 +188,7 @@ bool qimg_have_millis_elapsed(uint32_t start, uint32_t millis);
 void qimg_sleep_ms(uint32_t ms);
 
 /**
- * @brief Fill the framebuffer with black
+ * @brief Fills the framebuffer with black
  * @param fb    target framebuffer
  */
 void qimg_clear_framebuffer(qimg_fb* fb);
@@ -196,7 +209,7 @@ void qimg_free_collection(qimg_collection* col);
  * @brief Frees an image from memory
  * @param im    target image
  */
-void qimg_free_image(qimq_image* im);
+void qimg_free_image(qimg_image* im);
 
 /**
  * @brief Draws a collection of images on the framebuffer
@@ -223,7 +236,7 @@ void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
  * @param repaint   keep repainting the image
  * @param delay_s   time to keep the image on the framebuffer.
  */
-void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
+void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
                      bool repaint, int delay_s);
 
 int get_default_framebuffer_idx(void);
@@ -308,7 +321,7 @@ void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
 
 }
 
-void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
+void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
                      bool repaint, int delay_s) {
     char* buf = malloc(fb->size);
     memcpy(buf, fb->fbdata, fb->size);
@@ -383,7 +396,7 @@ void qimg_draw_image(qimq_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
     } while (run);
 }
 
-qimg_color qimg_get_pixel_color(qimq_image* im, int x, int y) {
+qimg_color qimg_get_pixel_color(qimg_image* im, int x, int y) {
     assertf(x < im->res.x && y < im->res.y, "Image coordinates out of bounds");
     uint8_t* offset = im->pixels + (y * im->res.x + x) * im->c;
     qimg_color color;
@@ -427,24 +440,31 @@ qimg_color qimg_get_bg_color(qimg_bg bg) {
     return bg_color;
 }
 
-qimq_image qimg_load_image(char* input_path) {
-    qimq_image im;
+qimg_image qimg_load_image(char* input_path, qimg_resolution* dest_size) {
+    qimg_image im;
     im.pixels = stbi_load(input_path, &im.res.x, &im.res.y, &im.c, 0);
     assertf(im.pixels, "Loading image %s failed", input_path);
+
+    if (dest_size) {
+        assertf(qimg_resize_image(&im, *dest_size),
+                "Image %s resizing failed", input_path);
+    }
+
     return im;
 }
 
-qimg_collection qimg_load_images(char** input_paths, int n_inputs) {
+qimg_collection qimg_load_images(char** input_paths, int n_inputs,
+                                 qimg_resolution* dest_size) {
     qimg_collection col;
     int i;
     for (i = 0; i < n_inputs; ++i) {
-        col.images[i] = qimg_load_image(input_paths[i]);
+        col.images[i] = qimg_load_image(input_paths[i], dest_size);
     }
     col.size = i;
     return col;
 }
 
-void qimg_free_image(qimq_image* im) {
+void qimg_free_image(qimg_image* im) {
     if (im->pixels)
     free(im->pixels);
 }
@@ -452,6 +472,22 @@ void qimg_free_image(qimq_image* im) {
 void qimg_free_collection(qimg_collection* col) {
     for (int i = 0; i < col->size; ++i)
         qimg_free_image(&col->images[i]);
+}
+
+bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res) {
+    uint8_t* out_buf = malloc(dest_res.x * dest_res.y * im->c);
+    if (stbir_resize_uint8(im->pixels, im->res.x, im->res.y, 0, out_buf,
+                           dest_res.x, dest_res.y, 0, im->c)) {
+        /* Update data pointer */
+        free(im->pixels);
+        im->pixels = out_buf;
+
+        /* Update resolution */
+        im->res.x = dest_res.x;
+        im->res.y = dest_res.y;
+        return true;
+    }
+    return false;
 }
 
 void set_cursor_visibility(bool visible) {
@@ -593,7 +629,7 @@ int main(int argc, char *argv[]) {
         slide_delay_s = 5;
 
     qimg_fb fb = qimg_open_framebuffer(fb_idx);
-    qimg_collection col = qimg_load_images(input_paths, n_inputs);
+    qimg_collection col = qimg_load_images(input_paths, n_inputs, NULL);
 
     /* Setup exit hooks on signals */
     signal(SIGINT, interrupt_handler);
