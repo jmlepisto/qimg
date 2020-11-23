@@ -36,9 +36,9 @@ Example usage:
 This will show the two files as a slideshow on the default framebuffer, scaled to fit the screen and centered. 
 `-c` will cause the cursor to be hidden which prevents the terminal of refreshing on top of the images.
 
-Please note that Qimg will ***NOT*** work if an Xorg session is active on the current TTY. 
-
 Exits via `SIGINT` or `SIGTERM` will trigger cleanups and restore terminal cursor visibility.
+
+Please note that Qimg will ***NOT*** work if an Xorg session is active on the current TTY. 
 
 #### How to get Qimg
 Building Qimg is easy as everything needed for the build is provided in this repository. 
