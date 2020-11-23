@@ -1,4 +1,4 @@
-/**
+/** @file qimg.c
  ** This file is part of the qimg project.
  ** Copyright 2020 Joni Lepistö <joni.m.lepisto@gmail.com>.
  **
@@ -29,7 +29,6 @@
  ** systems where it would've been nice to inspect images.
  **/
 
-
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image.h>
@@ -51,21 +50,27 @@
 #define FB_CLASS_RESOLUTION "/virtual_size"
 #define FB_GLOB "/sys/class/graphics/fb[0-9]"
 
-/* Standard terminal control sequences */
+/** Standard terminal control sequence for showing cursor */
 #define CUR_SHOW "\e[?25h"
+/** Standard terminal control sequence for hiding cursor */
 #define CUR_HIDE "\e[?25l"
 
-/* Adjust according to platform limitations */
+/** Adjust according to platform limitations */
 #define MAX_IMAGES 24
 
+/** Prints a formatted message to stderr */
 #define log_msg(fmt_, ...)\
     fprintf(stderr, (fmt_ "\n"), ##__VA_ARGS__)
 
+/**
+ * Checks a condition and prints an error message if it is not met before
+ * exiting
+ */
 #define assertf(A, fmt_, ...)\
     if (!(A)) {log_msg("[ERROR]: " fmt_, ##__VA_ARGS__); exit(EXIT_FAILURE);}\
     void f(void) /* To enforce semicolon and prevent warnings */
 
-/* Generates lookup functions for converting string arguments to enums */
+/** Generates lookup functions for converting string arguments to enums */
 #define STRING_TO_ENUM_(e) e str2##e(const char* str) {                         \
     int j;                                                                      \
     for (j = 0;  j < sizeof (e##_conversion) / sizeof (e##_conversion[0]);  ++j)\
@@ -76,62 +81,71 @@
 
 typedef enum { false, true } bool;
 
-typedef struct res_ {
-    int x;
-    int y;
+/** Represents resolution with horizontal and vertical pixel counts */
+typedef struct qimg_resolution_ {
+    int x;  /**< horizontal resolution */
+    int y;  /**< vertical resolution */
 } qimg_resolution;
 
-typedef struct col_ {
+/** Represents an RGBA color */
+typedef struct qimg_color_ {
     uint8_t r;
     uint8_t g;
     uint8_t b;
     uint8_t a;
 } qimg_color;
 
-typedef struct fb_ {
-    qimg_resolution res;            /* framebuffer resolution */
-    unsigned int size;              /* framebuffer size */
-    int fbfd;                       /* framebuffer file descriptor */
-    char* fbdata;                   /* framebuffer data pointer */
+/** Represents an opened frambuffer instance */
+typedef struct qimg_fb_ {
+    qimg_resolution res;            /**< framebuffer resolution */
+    unsigned int size;              /**< framebuffer size */
+    int fbfd;                       /**< framebuffer file descriptor */
+    char* fbdata;                   /**< framebuffer data pointer */
 } qimg_fb;
 
-typedef struct im_ {
-    qimg_resolution res;            /* resolution */
-    int c;                          /* channels */
-    char _padding[4];               /* guess what */
-    uint8_t* pixels;                /* image data pointer */
+/** Represents a loaded image */
+typedef struct qimg_image_ {
+    qimg_resolution res;            /**< resolution */
+    int c;                          /**< channels */
+    char _padding[4];               /**< guess what */
+    uint8_t* pixels;                /**< image data pointer */
 } qimg_image;
 
-typedef struct collection_ {
-    int size;                       /* number of images */
-    char _padding[4];               /* yeah */
-    qimg_image images[MAX_IMAGES];  /* image array */
+/** Represents a collection of loaded images */
+typedef struct qimg_collection_ {
+    int size;                       /**< number of images */
+    char _padding[4];               /**< yeah */
+    qimg_image images[MAX_IMAGES];  /**< image array */
 } qimg_collection;
 
-typedef enum pos_ {
+/** Image position */
+typedef enum qimg_position_ {
     POS_CENTERED,
     POS_TOP_LEFT,
     POS_TOP_RIGHT,
     POS_BOTTOM_RIGHT,
     POS_BOTTOM_LEFT
-} qimg_position;        /* image position */
+} qimg_position;
 
-typedef enum bg_ {
+/** Framebuffer background color */
+typedef enum qimg_bg_ {
     BG_BLACK,
     BG_WHITE,
     BG_RED,
     BG_GREEN,
     BG_BLUE,
     BG_DISABLED
-} qimg_bg;              /* background color */
+} qimg_bg;
 
-typedef enum scale_ {
-    SCALE_DISABLED,
-    SCALE_FIT,
-    SCALE_STRETCH,
-    SCALE_FILL
-} qimg_scale;           /* image scale style */
-
+/** Image scale types */
+typedef enum qimg_scale_ {
+    SCALE_DISABLED, /**< no scaling applied */
+    SCALE_FIT,      /**< image scaled to fit the screen,
+                    aspect ratio maintained */
+    SCALE_STRETCH,  /**< image stretched to fill the whole screen */
+    SCALE_FILL      /**< image scaled to fill the whole screen,
+                    aspect ratio maintained */
+} qimg_scale;
 
 /* Lookup tables to find enums with string arguments */
 const static struct {
@@ -206,7 +220,7 @@ qimg_image qimg_load_image(char* input_path);
 qimg_collection qimg_load_images(char** input_paths, int n_inputs);
 
 /**
- * @brief Resizes image
+ * @brief Resizes an image
  * @param im        image to resize
  * @param dest_res  target resolution
  * @return true if resizing succeeded, false if not
@@ -214,7 +228,11 @@ qimg_collection qimg_load_images(char** input_paths, int n_inputs);
 bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res);
 
 /**
- * @brief Calculates target dimensions for image, viewport on given scale style.
+ * @brief Calculates target dimensions for image when viewed on a viewport of
+ * specified size on given scale style.
+ *
+ * See #qimg_scale for different scale type definitions.
+ *
  * @param src       source image
  * @param vp        viewport
  * @param scale     scale style
@@ -228,7 +246,15 @@ qimg_resolution qimg_get_scaled_dims(qimg_resolution src, qimg_resolution vp,
  * @param idx   framebuffer index (/dev/fb<idx>)
  * @return framebuffer instance
  */
-qimg_fb qimg_open_framebuffer(int idx);
+qimg_fb qimg_open_fb(int idx);
+
+/**
+ * @brief Opens framebuffer from given path
+ * @param path  framebuffer path
+ * @return framebuffer instance
+ */
+qimg_fb qimg_open_fb_from_path(const char* path);
+
 
 /**
  * @brief Gets milliseconds since program start
@@ -340,17 +366,20 @@ void qimg_sleep_ms(uint32_t ms) {
     nanosleep(&ts, NULL);
 }
 
-qimg_fb qimg_open_framebuffer(int idx) {
+qimg_fb qimg_open_fb(int idx) {
     /* Append device index to the framebuffer device path */
     char idx_buf[FB_IDX_MAX_SIZE];
     assertf(snprintf(idx_buf, FB_IDX_MAX_SIZE, "%d", idx) <
             FB_IDX_MAX_SIZE, "Framebuffer index overflow");
-    char dev[FB_IDX_MAX_SIZE + sizeof(FB_DEV_BASE)] = FB_DEV_BASE;
-    strncat(dev, idx_buf, FB_IDX_MAX_SIZE);
+    char dev_path[FB_IDX_MAX_SIZE + sizeof(FB_DEV_BASE)] = FB_DEV_BASE;
+    strncat(dev_path, idx_buf, FB_IDX_MAX_SIZE);
 
-    /* Open framebuffer */
+    return qimg_open_fb_from_path(dev_path);
+}
+
+qimg_fb qimg_open_fb_from_path(const char* path) {
     qimg_fb fb;
-    fb.fbfd = open(dev, O_RDWR);
+    fb.fbfd = open(path, O_RDWR);
     assertf(fb.fbfd >= 0, "Framebuffer device fopen() failed");
 
     /* Get framebuffer information */
@@ -593,7 +622,8 @@ void print_help() {
            "\n"
            "General options:\n"
            "-h,             Print this help.\n"
-           "-b <index>,     Use framebuffer device with given index.\n"
+           "-d <path>,      Use framebuffer device at given path.\n"
+           "-b <i>,         Use framebuffer device with given index (/dev/fb<i>).\n"
            "                Default is to use one found with the lowest index.\n"
            "-c,             Hide terminal cursor.\n"
            "-r,             Keep repainting the image. If hiding the cursor\n"
@@ -601,20 +631,20 @@ void print_help() {
            "                image on top with the cost of CPU usage.\n"
            "\n"
            "Image layout:\n"
-           "-pos <position> Draw the image in given position. Possible values:\n"
+           "-pos <pos>,     Draw the image in given position. Possible values:\n"
            "                c   -   centered\n"
            "                tl  -   top left (default)\n"
            "                tr  -   top right\n"
            "                br  -   bottom right\n"
            "                bl  -   bottom left\n"
-           "-bg <color>     Fill background with color. Possible values:\n"
+           "-bg <color>,    Fill background with color. Possible values:\n"
            "                black\n"
            "                white\n"
            "                red\n"
            "                green\n"
            "                blue\n"
            "                disabled (transparent, default)\n"
-           "-scale <style>  Scale the image with given style. Possible values:\n"
+           "-scale <style>, Scale the image with given style. Possible values:\n"
            "                disabled    -   no scaling (default).\n"
            "                fit         -   fit the image to screen, preserving\n"
            "                                aspect ratio.\n"
@@ -623,20 +653,20 @@ void print_help() {
            "                                preserving aspect ratio.\n"
            "\n"
            "Slideshow and timing options:\n"
-           "-d <delay>      Slideshow interval in seconds (default 5s).\n"
+           "-delay <delay>, Slideshow interval in seconds (default 5s).\n"
            "                If used with a single image, the image is displayed\n"
            "                for <delay> seconds.\n"
            "\n"
            "Generic framebuffer operations:\n"
            "(Use one at a time, cannot be joined with other operations)\n"
-           "-clear          Clear the framebuffer\n"
+           "-clear,         Clear the framebuffer\n"
            "\n");
 }
 
 void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                      int* n_inputs, bool* refresh, bool* hide_cursor,
                      qimg_position* pos, qimg_bg* bg, int* slide_delay_s,
-                     qimg_scale* scale) {
+                     qimg_scale* scale, char** fb_path) {
     assertf(argc > 1, "Arguments missing");
     int opts = 0;
     for (int i = 1; i < argc; ++i) {
@@ -664,7 +694,7 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                 ++opts;
                 *bg = str2qimg_bg(argv[i]);
             }
-        } else if (strcmp(argv[i], "-d") == 0) {
+        } else if (strcmp(argv[i], "-delay") == 0) {
             ++opts;
             if (argc > (++i)) {
                 ++opts;
@@ -678,7 +708,15 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                 ++opts;
                 *scale = str2qimg_scale(argv[i]);
             }
+        } else if (strcmp(argv[i], "-d") == 0) {
+            ++opts;
+            if (argc > (++i)) {
+                ++opts;
+                *fb_path = argv[i];
+            }
         }
+
+
         /* These options only work one at a time, exiting after completion */
         else if (strcmp(argv[i], "-h") == 0) {
             ++opts;
@@ -688,7 +726,7 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
             ++opts;
             if (*fb_idx == -1)
                 *fb_idx = get_default_framebuffer_idx();
-            qimg_fb fb = qimg_open_framebuffer(*fb_idx);
+            qimg_fb fb = qimg_open_fb(*fb_idx);
             qimg_clear_framebuffer(&fb);
             exit(EXIT_SUCCESS);
         }
@@ -707,11 +745,12 @@ int main(int argc, char *argv[]) {
     /* Record start ticks for timekeeping */
     begin_clk = clock();
 
-    /* Setup start values for params */
+    /* Setup starting values for params */
     int fb_idx = -1;
     int n_inputs = 0;
-    int slide_delay_s = 0;
+    int slide_dly_s = 0;
     char* input_paths[MAX_IMAGES];
+    char* fb_path = NULL;
     bool repaint = false;
     bool hide_cursor = false;
     qimg_position pos = POS_TOP_LEFT;
@@ -719,15 +758,22 @@ int main(int argc, char *argv[]) {
     qimg_scale scale = SCALE_DISABLED;
 
     parse_arguments(argc, argv, &fb_idx, input_paths, &n_inputs, &repaint,
-                    &hide_cursor, &pos, &bg, &slide_delay_s, &scale);
+                    &hide_cursor, &pos, &bg, &slide_dly_s, &scale, &fb_path);
 
     assertf(n_inputs, "No input file");
     if (fb_idx == -1)
         fb_idx = get_default_framebuffer_idx();
-    if (slide_delay_s == 0 && n_inputs > 1) /* Default interval for slideshows */
-        slide_delay_s = 5;
+    if (slide_dly_s == 0 && n_inputs > 1) /* Default interval for slideshows */
+        slide_dly_s = 5;
 
-    qimg_fb fb = qimg_open_framebuffer(fb_idx);
+    /* Open framebuffer */
+    qimg_fb fb;
+    if (fb_path)
+        fb = qimg_open_fb_from_path(fb_path);
+    else
+        fb = qimg_open_fb(fb_idx);
+
+    /* Load images */
     qimg_collection col = qimg_load_images(input_paths, n_inputs);
 
     /* Resize images if needed */
@@ -745,11 +791,11 @@ int main(int argc, char *argv[]) {
 
     /* Fasten your seatbelts */
     if (hide_cursor) set_cursor_visibility(false);
-    qimg_draw_images(&col, &fb, pos, bg, repaint, slide_delay_s);
+    qimg_draw_images(&col, &fb, pos, bg, repaint, slide_dly_s);
 
     /* if cursor is set to hidden and no repaint nor delay is set, the program
      * shall wait indefinitely for user interrupt */
-    if (!repaint && hide_cursor && !slide_delay_s) pause();
+    if (!repaint && hide_cursor && !slide_dly_s) pause();
 
     /* Cleanup */
     if (repaint || hide_cursor)
