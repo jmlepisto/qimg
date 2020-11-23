@@ -60,9 +60,19 @@
 
 #define log_msg(fmt_, ...)\
     fprintf(stderr, (fmt_ "\n"), ##__VA_ARGS__)
+
 #define assertf(A, fmt_, ...)\
     if (!(A)) {log_msg("[ERROR]: " fmt_, ##__VA_ARGS__); exit(EXIT_FAILURE);}\
     void f(void) /* To enforce semicolon and prevent warnings */
+
+/* Generates lookup functions for converting string arguments to enums */
+#define STRING_TO_ENUM_(e) e str2##e(const char* str) {                         \
+    int j;                                                                      \
+    for (j = 0;  j < sizeof (e##_conversion) / sizeof (e##_conversion[0]);  ++j)\
+        if (!strcmp (str, e##_conversion[j].str))                               \
+            return e##_conversion[j].en;                                        \
+    assertf(false, "Unknown option %s for " #e, str);                           \
+}
 
 typedef enum { false, true } bool;
 
@@ -115,6 +125,52 @@ typedef enum bg_ {
     BG_DISABLED
 } qimg_bg;              /* background color */
 
+typedef enum scale_ {
+    SCALE_DISABLED,
+    SCALE_FIT,
+    SCALE_STRETCH,
+    SCALE_FILL
+} qimg_scale;           /* image scale style */
+
+
+/* Lookup tables to find enums with string arguments */
+const static struct {
+    qimg_position en;
+    const char *str;
+} qimg_position_conversion [] = {
+    {POS_CENTERED, "c"},
+    {POS_TOP_LEFT, "tl"},
+    {POS_TOP_RIGHT, "tr"},
+    {POS_BOTTOM_LEFT, "bl"},
+    {POS_BOTTOM_RIGHT, "br"}
+};
+
+const static struct {
+    qimg_bg en;
+    const char *str;
+} qimg_bg_conversion [] = {
+    {BG_BLACK, "black"},
+    {BG_WHITE, "white"},
+    {BG_RED, "red"},
+    {BG_GREEN, "green"},
+    {BG_BLUE, "blue"},
+    {BG_DISABLED, "disabled"}
+};
+
+const static struct {
+    qimg_scale en;
+    const char *str;
+} qimg_scale_conversion [] = {
+    {SCALE_DISABLED, "disabled"},
+    {SCALE_FIT, "fit"},
+    {SCALE_STRETCH, "stretch"},
+    {SCALE_FILL, "fill"}
+};
+
+STRING_TO_ENUM_(qimg_position)
+STRING_TO_ENUM_(qimg_bg)
+STRING_TO_ENUM_(qimg_scale)
+
 static volatile bool run = true; /* used to go through cleanup on exit */
 static clock_t begin_clk;
 
@@ -137,20 +193,17 @@ qimg_color qimg_get_bg_color(qimg_bg bg);
 /**
  * @brief Loads image at given path
  * @param input_path    input path
- * @param dest_size     target size (not applied if NULL)
  * @return loaded image, exits if loading errors
  */
-qimg_image qimg_load_image(char* input_path, qimg_resolution* dest_size);
+qimg_image qimg_load_image(char* input_path);
 
 /**
  * @brief Loads multiple images to a collection
  * @param input_paths   input path vector
  * @param n_inputs      number of inputs
- * @param dest_size     target size (not applied if NULL)
  * @return collection of images
  */
-qimg_collection qimg_load_images(char** input_paths, int n_inputs,
-                                 qimg_resolution* dest_size);
+qimg_collection qimg_load_images(char** input_paths, int n_inputs);
 
 /**
  * @brief Resizes image
@@ -159,6 +212,9 @@ qimg_collection qimg_load_images(char** input_paths, int n_inputs,
  * @return          true if resizing succeeded, false if not
  */
 bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res);
+
+qimg_resolution qimg_get_scaled_dims(qimg_resolution src, qimg_resolution vp,
+                                     qimg_scale scale);
 
 /**
  * @brief Opens framebuffer with given index
@@ -440,25 +496,18 @@ qimg_color qimg_get_bg_color(qimg_bg bg) {
     return bg_color;
 }
 
-qimg_image qimg_load_image(char* input_path, qimg_resolution* dest_size) {
+qimg_image qimg_load_image(char* input_path) {
     qimg_image im;
     im.pixels = stbi_load(input_path, &im.res.x, &im.res.y, &im.c, 0);
     assertf(im.pixels, "Loading image %s failed", input_path);
-
-    if (dest_size) {
-        assertf(qimg_resize_image(&im, *dest_size),
-                "Image %s resizing failed", input_path);
-    }
-
     return im;
 }
 
-qimg_collection qimg_load_images(char** input_paths, int n_inputs,
-                                 qimg_resolution* dest_size) {
+qimg_collection qimg_load_images(char** input_paths, int n_inputs) {
     qimg_collection col;
     int i;
     for (i = 0; i < n_inputs; ++i) {
-        col.images[i] = qimg_load_image(input_paths[i], dest_size);
+        col.images[i] = qimg_load_image(input_paths[i]);
     }
     col.size = i;
     return col;
@@ -490,6 +539,35 @@ bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res) {
     return false;
 }
 
+qimg_resolution qimg_get_scaled_dims(qimg_resolution src, qimg_resolution vp,
+                                     qimg_scale scale) {
+    qimg_resolution r;
+    float p;
+    float px = (float) vp.x / (float) src.x;
+    float py = (float) vp.y / (float) src.y;
+
+    switch (scale) {
+    case SCALE_DISABLED:
+        r = src;
+        break;
+    case SCALE_STRETCH:
+        r = vp;
+        break;
+    case SCALE_FILL:
+        p = (px > py) ? px : py;
+        r.x = src.x * p;
+        r.y = src.y * p;
+        break;
+    case SCALE_FIT:
+        p = (px > py) ? py : px;
+        r.x = src.x * p;
+        r.y = src.y * p;
+        break;
+    }
+
+    return r;
+}
+
 void set_cursor_visibility(bool visible) {
     if (visible) printf(CUR_SHOW);
     else printf(CUR_HIDE);
@@ -516,18 +594,25 @@ void print_help() {
            "\n"
            "Image layout:\n"
            "-pos <position> Draw the image in given position. Possible values:\n"
-           "                0   -   centered\n"
-           "                1   -   top left (default)\n"
-           "                2   -   top right\n"
-           "                3   -   bottom right\n"
-           "                4   -   bottom left\n"
+           "                c   -   centered\n"
+           "                tl  -   top left (default)\n"
+           "                tr  -   top right\n"
+           "                br  -   bottom right\n"
+           "                bl  -   bottom left\n"
            "-bg <color>     Fill background with color. Possible values:\n"
-           "                0   -   black\n"
-           "                1   -   white\n"
-           "                2   -   red\n"
-           "                3   -   green\n"
-           "                4   -   blue\n"
-           "                5   -   disabled (transparent, default)\n"
+           "                black\n"
+           "                white\n"
+           "                red\n"
+           "                green\n"
+           "                blue\n"
+           "                disabled (transparent, default)\n"
+           "-scale <style>  Scale the image with given style. Possible values:\n"
+           "                disabled    -   no scaling (default).\n"
+           "                fit         -   fit the image to screen, preserving\n"
+           "                                aspect ratio.\n"
+           "                stretch     -   stretch the image to fill whole screen.\n"
+           "                fill        -   fill the screen with the image,\n"
+           "                                preserving aspect ratio.\n"
            "\n"
            "Slideshow and timing options:\n"
            "-d <delay>      Slideshow interval in seconds (default 5s).\n"
@@ -542,7 +627,8 @@ void print_help() {
 
 void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                      int* n_inputs, bool* refresh, bool* hide_cursor,
-                     qimg_position* pos, qimg_bg* bg, int* slide_delay_s) {
+                     qimg_position* pos, qimg_bg* bg, int* slide_delay_s,
+                     qimg_scale* scale) {
     assertf(argc > 1, "Arguments missing");
     int opts = 0;
     for (int i = 1; i < argc; ++i) {
@@ -562,15 +648,13 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
             ++opts;
             if (argc > (++i)) {
                 ++opts;
-                int temp = atoi(argv[i]);
-                *pos = (qimg_position) temp;
+                *pos = str2qimg_position(argv[i]);
             }
         } else if (strcmp(argv[i], "-bg") == 0) {
             ++opts;
             if (argc > (++i)) {
                 ++opts;
-                int temp = atoi(argv[i]);
-                *bg = (qimg_bg) temp;
+                *bg = str2qimg_bg(argv[i]);
             }
         } else if (strcmp(argv[i], "-d") == 0) {
             ++opts;
@@ -579,6 +663,12 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                 int dly = atoi(argv[i]);
                 assertf(dly >= 0, "Delay must be positive");
                 *slide_delay_s = dly;
+            }
+        } else if (strcmp(argv[i], "-scale") == 0) {
+            ++opts;
+            if (argc > (++i)) {
+                ++opts;
+                *scale = str2qimg_scale(argv[i]);
             }
         }
         /* These options only work one at a time, exiting after completion */
@@ -618,9 +708,10 @@ int main(int argc, char *argv[]) {
     bool hide_cursor = false;
     qimg_position pos = POS_TOP_LEFT;
     qimg_bg bg = BG_DISABLED;
+    qimg_scale scale = SCALE_DISABLED;
 
     parse_arguments(argc, argv, &fb_idx, input_paths, &n_inputs, &repaint,
-                    &hide_cursor, &pos, &bg, &slide_delay_s);
+                    &hide_cursor, &pos, &bg, &slide_delay_s, &scale);
 
     assertf(n_inputs, "No input file");
     if (fb_idx == -1)
@@ -629,7 +720,16 @@ int main(int argc, char *argv[]) {
         slide_delay_s = 5;
 
     qimg_fb fb = qimg_open_framebuffer(fb_idx);
-    qimg_collection col = qimg_load_images(input_paths, n_inputs, NULL);
+    qimg_collection col = qimg_load_images(input_paths, n_inputs);
+
+    /* Resize images if needed */
+    if (scale != SCALE_DISABLED) {
+        qimg_resolution dest;
+        for (int i = 0; i < col.size; ++i) {
+            dest = qimg_get_scaled_dims(col.images[i].res, fb.res, scale);
+            qimg_resize_image(&col.images[i], dest);
+        }
+    }
 
     /* Setup exit hooks on signals */
     signal(SIGINT, interrupt_handler);
