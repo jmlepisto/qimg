@@ -457,6 +457,7 @@ void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
             break;
         }
     } while (run);
+    free(buf);
 }
 
 qimg_color qimg_get_pixel_color(qimg_image* im, int x, int y) {
