@@ -209,10 +209,17 @@ qimg_collection qimg_load_images(char** input_paths, int n_inputs);
  * @brief Resizes image
  * @param im        image to resize
  * @param dest_res  target resolution
- * @return          true if resizing succeeded, false if not
+ * @return true if resizing succeeded, false if not
  */
 bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res);
 
+/**
+ * @brief Calculates target dimensions for image, viewport on given scale style.
+ * @param src       source image
+ * @param vp        viewport
+ * @param scale     scale style
+ * @return target dimensions
+ */
 qimg_resolution qimg_get_scaled_dims(qimg_resolution src, qimg_resolution vp,
                                      qimg_scale scale);
 
