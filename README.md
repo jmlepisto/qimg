@@ -19,7 +19,9 @@ access to hardware-independent graphics. Userspace access is also supported via 
 Qimg takes advantage of Linux framebuffer to simply draw out the images as raw pixels on the screen - no tricks, treats or windowing contexts included.
 
 #### Why?
-Mostly, for fun. Though I've sincerely had a few occansions where it would've been nice to inspect some images and the only access to the system was via direct terminal.
+Mostly for fun but I've had a few occasions on some terminal-only
+systems where it would've been nice to view images and I found most of the
+existing solutions too complex and heavyweight for such a simple task.
 
 #### Cool, how do I use Qimg?
 `qimg -h` will teach you the basics. There aren't any fancy features (yet) so basic usage is `qimg [option]... input...`.
