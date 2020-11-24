@@ -4,7 +4,7 @@
 
 [![CMake build](https://github.com/jjstoo/qimg/workflows/CMake/badge.svg)](https://github.com/jjstoo/qimg/actions?query=workflow%3ACMake)
 
-Please see [**generated docs**](https://jjstoo.github.io/qimg/html/qimg_8c.html) for detailed usage info.
+Please see [**generated qimg.c docs**](https://jjstoo.github.io/qimg/html/qimg_8c.html) for detailed usage info and function reference.
 
 #### Quick Image Display - Display images in terminal sessions
 
