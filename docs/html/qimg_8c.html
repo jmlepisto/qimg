@@ -208,9 +208,9 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ae4618b7e49df65d9c06e3fa594f1dd4b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="qimg_8c.html#a9d2c4fbbc047443b6c959f824390edac">qimg_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#ae4618b7e49df65d9c06e3fa594f1dd4b">qimg_get_pixel_color</a> (<a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *im, int x, int y)</td></tr>
-<tr class="memdesc:ae4618b7e49df65d9c06e3fa594f1dd4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets color of an image at given position.  <a href="qimg_8c.html#ae4618b7e49df65d9c06e3fa594f1dd4b">More...</a><br /></td></tr>
-<tr class="separator:ae4618b7e49df65d9c06e3fa594f1dd4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60063247e7836abce2e4fcc9a724c1fb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="qimg_8c.html#a9d2c4fbbc047443b6c959f824390edac">qimg_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a60063247e7836abce2e4fcc9a724c1fb">qimg_get_pixel</a> (<a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *im, int x, int y)</td></tr>
+<tr class="memdesc:a60063247e7836abce2e4fcc9a724c1fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets color value of a pixel at given position.  <a href="qimg_8c.html#a60063247e7836abce2e4fcc9a724c1fb">More...</a><br /></td></tr>
+<tr class="separator:a60063247e7836abce2e4fcc9a724c1fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6e6b0020df5a3890ea44a25c7f8ad59"><td class="memItemLeft" align="right" valign="top"><a class="el" href="qimg_8c.html#a9d2c4fbbc047443b6c959f824390edac">qimg_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#af6e6b0020df5a3890ea44a25c7f8ad59">qimg_get_bg_color</a> (<a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a> bg)</td></tr>
 <tr class="memdesc:af6e6b0020df5a3890ea44a25c7f8ad59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets color values for background color enumeration.  <a href="qimg_8c.html#af6e6b0020df5a3890ea44a25c7f8ad59">More...</a><br /></td></tr>
 <tr class="separator:af6e6b0020df5a3890ea44a25c7f8ad59"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -973,14 +973,14 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 
 </div>
 </div>
-<a id="ae4618b7e49df65d9c06e3fa594f1dd4b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae4618b7e49df65d9c06e3fa594f1dd4b">&#9670;&nbsp;</a></span>qimg_get_pixel_color()</h2>
+<a id="a60063247e7836abce2e4fcc9a724c1fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60063247e7836abce2e4fcc9a724c1fb">&#9670;&nbsp;</a></span>qimg_get_pixel()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="qimg_8c.html#a9d2c4fbbc047443b6c959f824390edac">qimg_color</a> qimg_get_pixel_color </td>
+          <td class="memname"><a class="el" href="qimg_8c.html#a9d2c4fbbc047443b6c959f824390edac">qimg_color</a> qimg_get_pixel </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *&#160;</td>
           <td class="paramname"><em>im</em>, </td>
@@ -1005,7 +1005,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
       </table>
 </div><div class="memdoc">
 
-<p>Gets color of an image at given position. </p>
+<p>Gets color value of a pixel at given position. </p>
+<p>If the image has two or less channels, R, G and B values will be the same in the returned <a class="el" href="structqimg__color__.html">qimg_color_</a> struct.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">im</td><td>input image </td></tr>
@@ -1014,7 +1015,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>color of the given point </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>color value of the given point </dd></dl>
 
 </div>
 </div>

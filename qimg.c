@@ -290,13 +290,17 @@ static volatile bool run = true; /* used to go through cleanup on exit */
 static clock_t begin_clk;
 
 /**
- * @brief Gets color of an image at given position
+ * @brief Gets color value of a pixel at given position.
+ *
+ * If the image has two or less channels, R, G and B values will be the
+ * same in the returned #qimg_color_ struct.
+ *
  * @param im    input image
  * @param x     pos x
  * @param y     pos y
- * @return color of the given point
+ * @return color value of the given point
  */
-qimg_color qimg_get_pixel_color(qimg_image* im, int x, int y);
+qimg_color qimg_get_pixel(qimg_image* im, int x, int y);
 
 /**
  * @brief Gets color values for background color enumeration
@@ -573,7 +577,7 @@ void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
                     c = qimg_get_bg_color(bg);
                 }
             } else {
-                c = qimg_get_pixel_color(im, x, y);
+                c = qimg_get_pixel(im, x, y);
             }
 
             offs = (y_ * fb->res.x + x_) * 4;
@@ -608,7 +612,7 @@ void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
     free(buf);
 }
 
-qimg_color qimg_get_pixel_color(qimg_image* im, int x, int y) {
+qimg_color qimg_get_pixel(qimg_image* im, int x, int y) {
     assertf(x < im->res.x && y < im->res.y, "Image coordinates out of bounds");
     uint8_t* offset = im->pixels + (y * im->res.x + x) * im->c;
     qimg_color color;
