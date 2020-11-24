@@ -259,17 +259,19 @@ Functions</h2></td></tr>
 <tr class="memitem:a8d0a1ec7befabd32085248ad81489421"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a8d0a1ec7befabd32085248ad81489421">qimg_draw_image</a> (<a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *im, <a class="el" href="qimg_8c.html#a2f0438ddd6d4cfb00ebf628b678e975e">qimg_fb</a> *fb, <a class="el" href="qimg_8c.html#ab9453c8caab1e8edb2071ea03a94f52a">qimg_position</a> pos, <a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a> bg, bool repaint, int delay_s)</td></tr>
 <tr class="memdesc:a8d0a1ec7befabd32085248ad81489421"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws an image on the framebuffer.  <a href="qimg_8c.html#a8d0a1ec7befabd32085248ad81489421">More...</a><br /></td></tr>
 <tr class="separator:a8d0a1ec7befabd32085248ad81489421"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0fa525e55d9cc5f0359f2ea457e5243e"><td class="memItemLeft" align="right" valign="top"><a id="a0fa525e55d9cc5f0359f2ea457e5243e"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>get_default_framebuffer_idx</b> (void)</td></tr>
+<tr class="memitem:a0fa525e55d9cc5f0359f2ea457e5243e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a0fa525e55d9cc5f0359f2ea457e5243e">get_default_framebuffer_idx</a> (void)</td></tr>
+<tr class="memdesc:a0fa525e55d9cc5f0359f2ea457e5243e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Searches for default framebuffer index. Exits if no framebuffers found.  <a href="qimg_8c.html#a0fa525e55d9cc5f0359f2ea457e5243e">More...</a><br /></td></tr>
 <tr class="separator:a0fa525e55d9cc5f0359f2ea457e5243e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef73cdd6f0f4d051b553cd7184f75d0f"><td class="memItemLeft" align="right" valign="top"><a id="aef73cdd6f0f4d051b553cd7184f75d0f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>set_cursor_visibility</b> (bool blink)</td></tr>
-<tr class="separator:aef73cdd6f0f4d051b553cd7184f75d0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c00fefa9ca6b281d5a0753316ea9c8f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a9c00fefa9ca6b281d5a0753316ea9c8f">set_cursor_visibility</a> (bool visible)</td></tr>
+<tr class="memdesc:a9c00fefa9ca6b281d5a0753316ea9c8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets terminal cursor visibility.  <a href="qimg_8c.html#a9c00fefa9ca6b281d5a0753316ea9c8f">More...</a><br /></td></tr>
+<tr class="separator:a9c00fefa9ca6b281d5a0753316ea9c8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abcbf6c09394bb6a1db56ecf5c888fb87"><td class="memItemLeft" align="right" valign="top"><a id="abcbf6c09394bb6a1db56ecf5c888fb87"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>interrupt_handler</b> (int)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#abcbf6c09394bb6a1db56ecf5c888fb87">interrupt_handler</a> (int)</td></tr>
+<tr class="memdesc:abcbf6c09394bb6a1db56ecf5c888fb87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handles exit signals and stops processing to go through cleanups. <br /></td></tr>
 <tr class="separator:abcbf6c09394bb6a1db56ecf5c888fb87"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a402ea961bfc2ffeee61e3a7c330b1559"><td class="memItemLeft" align="right" valign="top"><a id="a402ea961bfc2ffeee61e3a7c330b1559"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>print_help</b> (void)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a402ea961bfc2ffeee61e3a7c330b1559">print_help</a> (void)</td></tr>
+<tr class="memdesc:a402ea961bfc2ffeee61e3a7c330b1559"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prints usage help. <br /></td></tr>
 <tr class="separator:a402ea961bfc2ffeee61e3a7c330b1559"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a528739f111a421117cab5025f9a410d1"><td class="memItemLeft" align="right" valign="top"><a id="a528739f111a421117cab5025f9a410d1"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>parse_arguments</b> (int argc, char *argv[], int *fb_idx, char **input, int *n_inputs, bool *refresh, bool *hide_cursor, <a class="el" href="qimg_8c.html#ab9453c8caab1e8edb2071ea03a94f52a">qimg_position</a> *pos, <a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a> *bg, int *slide_delay_s, <a class="el" href="qimg_8c.html#a6e4bffa1875b934c84bcdf31605be5df">qimg_scale</a> *scale, char **fb_path)</td></tr>
@@ -284,10 +286,73 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>
 <p>You should have received a copy of the GNU General Public License along with this program. If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
 <hr  />
-<p>Qimg - Quick Image Display</p>
+<p><b>Qimg - Quick Image Display</b></p>
 <p>Qimg provides a totally stripped and straightforward way of displaying images on a Linux system. No desktop environment or windowing system needed!</p>
 <p>Qimg uses the Linux framebuffer interface to draw bitmap data on the screen. Images are drawn as raw pixels with no windowing context whatsoever.</p>
-<p>Why? Mostly for fun but I've had a few occasions on some terminal-only systems where it would've been nice to inspect images. </p>
+<p>Why? Mostly for fun but I've had a few occasions on some terminal-only systems where it would've been nice to view images and I found most of the existing solutions too complex and heavyweight for such a simple task.</p>
+<hr  />
+<p><b>Examples:</b></p>
+<p>General examples for using qimg.</p>
+<p><b>Basic usage:</b> </p><pre class="fragment">qimg input.jpg
+</pre><p>Paints the given image at native size on the default framebuffer device once, exiting right after drawing is done. </p><pre class="fragment">qimg -c input.jpg
+</pre><p>Paints the given image at native size on the default framebuffer device, hides the terminal cursor and keeps running until user exit via <code>SIGINT</code> or <code>SIGTERM</code>. This effectively prevents the terminal cursor from refreshing on top of the image. </p><pre class="fragment">qimg -r input.jpg
+</pre><p>Paints the given image at native size on the default framebuffer device and keeps repainting the image on each cycle to prevent anything else from refreshing on top of the image. Keeps running until user exit via <code>SIGINT</code> or <code>SIGTERM</code>. </p><pre class="fragment">qimg -d /dev/fb1 input.jpg
+</pre><p>Paints the given image at native size on the given framebuffer device <code>/dev/fb1</code>. </p><pre class="fragment">qimg -b 2 input.jpg
+</pre><p>Paints the given image at native size on the given framebuffer device with index 2, resulting in <code>/dev/fb2</code>.</p>
+<p><b>Image positioning, background and resizing:</b></p>
+<p>To set image positioning, use: </p><pre class="fragment">-pos &lt;pos&gt;
+</pre><p>Where <code>&lt;pos&gt;</code> can be one of the following:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Position </th><th class="markdownTableHeadNone"><code>&lt;pos&gt;</code>  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Center </td><td class="markdownTableBodyNone"><code>c</code>  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Top left </td><td class="markdownTableBodyNone"><code>tl</code>  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Top right </td><td class="markdownTableBodyNone"><code>tr</code>  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Bottom right </td><td class="markdownTableBodyNone"><code>br</code>  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Bottom left </td><td class="markdownTableBodyNone"><code>bl</code>  </td></tr>
+</table>
+<p>To set background color, use: </p><pre class="fragment">-bg &lt;color&gt;
+</pre><p>Where <code>&lt;color&gt;</code> can be one of the following:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone"><code>&lt;color&gt;</code>  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">black  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">white  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">red  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">green  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">blue  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">disabled  </td></tr>
+</table>
+<p><code>disabled</code> will leave the framebuffer as-is, only affecting the areas where the images is painted.</p>
+<p>To resize the image, use: </p><pre class="fragment">-scale &lt;style&gt;
+</pre><p>Where <code>&lt;style&gt;</code> can be one of the following:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone"><code>&lt;style&gt;</code>  </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">fit  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">stretch  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">fill  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">disabled  </td></tr>
+</table>
+<p>Please see <a class="el" href="qimg_8c.html#a5116c18ea3669c07b8b372c5c204ed3b">qimg_scale_</a> for scale style definitions.</p>
+<p><b>Slideshows:</b></p>
+<p>To show multiple images as a slideshow, simply feed <code>qimg</code> with multiple inputs: </p><pre class="fragment">qimg -c -delay 2 input1.jpg input2.jpg input3.jpg
+</pre><p>This example will load and show three images with 2 second delay between them. As with the previous examples <code>-c</code> will hide the cursor. Setting image positioning, scaling or background colors will affect every image in the slideshow. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a77165b35559a6de9cd745de199ae0a05"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a77165b35559a6de9cd745de199ae0a05">&#9670;&nbsp;</a></span>assertf</h2>
@@ -604,6 +669,27 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a0fa525e55d9cc5f0359f2ea457e5243e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fa525e55d9cc5f0359f2ea457e5243e">&#9670;&nbsp;</a></span>get_default_framebuffer_idx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int get_default_framebuffer_idx </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Searches for default framebuffer index. Exits if no framebuffers found. </p>
+<dl class="section return"><dt>Returns</dt><dd>lowest index found on the system </dd></dl>
+
+</div>
+</div>
 <a id="af6cded26f38f427b254b7f2b77a185e0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af6cded26f38f427b254b7f2b77a185e0">&#9670;&nbsp;</a></span>qimg_clear_framebuffer()</h2>
 
@@ -1199,8 +1285,34 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 
 </div>
 </div>
+<a id="a9c00fefa9ca6b281d5a0753316ea9c8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c00fefa9ca6b281d5a0753316ea9c8f">&#9670;&nbsp;</a></span>set_cursor_visibility()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void set_cursor_visibility </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>visible</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets terminal cursor visibility. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">visible</td><td>cursor visibility </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 </div><!-- contents -->
-<div class="ttc" id="aqimg_8c_html_a5c4836cb9493ce2394abde2810463f9e"><div class="ttname"><a href="qimg_8c.html#a5c4836cb9493ce2394abde2810463f9e">log_msg</a></div><div class="ttdeci">#define log_msg(fmt_,...)</div><div class="ttdef"><b>Definition:</b> qimg.c:62</div></div>
+<div class="ttc" id="aqimg_8c_html_a5c4836cb9493ce2394abde2810463f9e"><div class="ttname"><a href="qimg_8c.html#a5c4836cb9493ce2394abde2810463f9e">log_msg</a></div><div class="ttdeci">#define log_msg(fmt_,...)</div><div class="ttdef"><b>Definition:</b> qimg.c:163</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

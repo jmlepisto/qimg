@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['max_5fimages_9',['MAX_IMAGES',['../qimg_8c.html#a2f6b152f620e16d11f1e68f497fa9ec8',1,'qimg.c']]]
+  ['log_5fmsg_10',['log_msg',['../qimg_8c.html#a5c4836cb9493ce2394abde2810463f9e',1,'qimg.c']]]
 ];

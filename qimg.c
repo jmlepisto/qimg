@@ -17,7 +17,7 @@
  **
  ** ----------------------------------------------------------------------------
  **
- ** Qimg - Quick Image Display
+ ** **Qimg - Quick Image Display**
  **
  ** Qimg provides a totally stripped and straightforward way of displaying
  ** images on a Linux system. No desktop environment or windowing system needed!
@@ -26,7 +26,108 @@
  ** Images are drawn as raw pixels with no windowing context whatsoever.
  **
  ** Why? Mostly for fun but I've had a few occasions on some terminal-only
- ** systems where it would've been nice to inspect images.
+ ** systems where it would've been nice to view images and I found most of the
+ ** existing solutions too complex and heavyweight for such a simple task.
+ **
+ ** ----------------------------------------------------------------------------
+ **
+ ** **Examples:**
+ **
+ ** General examples for using qimg.
+ **
+ ** **Basic usage:**
+ **
+ **     qimg input.jpg
+ **
+ ** Paints the given image at native size on the default framebuffer device
+ ** once, exiting right after drawing is done.
+ **
+ **     qimg -c input.jpg
+ **
+ ** Paints the given image at native size on the default framebuffer device,
+ ** hides the terminal cursor and keeps running until user exit
+ ** via `SIGINT` or `SIGTERM`.
+ ** This effectively prevents the terminal cursor from refreshing on top of
+ ** the image.
+ **
+ **     qimg -r input.jpg
+ **
+ ** Paints the given image at native size on the default framebuffer device
+ ** and keeps repainting the image on each cycle to prevent anything else from
+ ** refreshing on top of the image. Keeps running until user exit
+ ** via `SIGINT` or `SIGTERM`.
+ **
+ **     qimg -d /dev/fb1 input.jpg
+ **
+ ** Paints the given image at native size on the given framebuffer
+ ** device `/dev/fb1`.
+ **
+ **     qimg -b 2 input.jpg
+ **
+ ** Paints the given image at native size on the given framebuffer
+ ** device with index 2, resulting in `/dev/fb2`.
+ **
+ ** **Image positioning, background and resizing:**
+ **
+ ** To set image positioning, use:
+ **
+ **     -pos <pos>
+ **
+ ** Where `<pos>` can be one of the following:
+ **
+ **
+ ** Position        | ```<pos>```
+ ** --------        | -----------
+ ** Center          | `c`
+ ** Top left        | `tl`
+ ** Top right       | `tr`
+ ** Bottom right    | `br`
+ ** Bottom left     | `bl`
+ **
+ ** To set background color, use:
+ **
+ **     -bg <color>
+ **
+ ** Where `<color>` can be one of the following:
+ **
+ ** | `<color>` |
+ ** |-----------|
+ ** | black     |
+ ** | white     |
+ ** | red       |
+ ** | green     |
+ ** | blue      |
+ ** | disabled  |
+ **
+ ** `disabled` will leave the framebuffer as-is, only affecting the areas where
+ ** the images is painted.
+ **
+ ** To resize the image, use:
+ **
+ **     -scale <style>
+ **
+ ** Where `<style>` can be one of the following:
+ **
+ ** | `<style>` |
+ ** |-----------|
+ ** | fit       |
+ ** | stretch   |
+ ** | fill      |
+ ** | disabled  |
+ **
+ ** Please see #qimg_scale_ for scale style definitions.
+ **
+ ** **Slideshows:**
+ **
+ ** To show multiple images as a slideshow, simply feed `qimg` with multiple
+ ** inputs:
+ **
+ **     qimg -c -delay 2 input1.jpg input2.jpg input3.jpg
+ **
+ ** This example will load and show three images with 2 second delay between
+ ** them. As with the previous examples `-c` will hide the cursor.
+ ** Setting image positioning, scaling or background colors will affect every
+ ** image in the slideshow.
  **/
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -328,9 +429,27 @@ void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
 void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
                      bool repaint, int delay_s);
 
+/**
+ * @brief Searches for default framebuffer index.
+ * Exits if no framebuffers found.
+ * @return lowest index found on the system
+ */
 int get_default_framebuffer_idx(void);
-void set_cursor_visibility(bool blink);
+
+/**
+ * @brief Sets terminal cursor visibility
+ * @param visible   cursor visibility
+ */
+void set_cursor_visibility(bool visible);
+
+/**
+ * @brief Handles exit signals and stops processing to go through cleanups
+ */
 void interrupt_handler(int);
+
+/**
+ * @brief Prints usage help
+ */
 void print_help(void);
 
 int get_default_framebuffer_idx() {
