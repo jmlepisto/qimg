@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['size_93',['size',['../structqimg__fb__.html#a449ff4d045579541e1cc35a0b53775c8',1,'qimg_fb_::size()'],['../structqimg__collection__.html#aa3e88c570fbeabb68aaee72dc25bffad',1,'qimg_collection_::size()']]]
+  ['res_107',['res',['../structqimg__fb__.html#a74ee6925468f3717275f753f3a980ccd',1,'qimg_fb_::res()'],['../structqimg__image__.html#a2629e0326dfa816544202e3dae41f5ab',1,'qimg_image_::res()']]]
 ];

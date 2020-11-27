@@ -116,6 +116,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structqimg__collection__.html">qimg_collection_</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structqimg__dyn__collection__.html">qimg_dyn_collection_</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
@@ -144,7 +146,10 @@ Macros</h2></td></tr>
 <tr class="separator:af8dfe4996ad72b4635cb26c0b3b34d89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a57afa05ea7f329754bb4253b87f481"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a2a57afa05ea7f329754bb4253b87f481">CUR_HIDE</a>&#160;&#160;&#160;&quot;\e[?25l&quot;</td></tr>
 <tr class="separator:a2a57afa05ea7f329754bb4253b87f481"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f6b152f620e16d11f1e68f497fa9ec8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a2f6b152f620e16d11f1e68f497fa9ec8">MAX_IMAGES</a>&#160;&#160;&#160;24</td></tr>
+<tr class="memitem:ad4d796b98c583d49e83adabd74a63bf6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#ad4d796b98c583d49e83adabd74a63bf6">MAX_BUFFER_SIZE</a>&#160;&#160;&#160;5</td></tr>
+<tr class="separator:ad4d796b98c583d49e83adabd74a63bf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f6b152f620e16d11f1e68f497fa9ec8"><td class="memItemLeft" align="right" valign="top"><a id="a2f6b152f620e16d11f1e68f497fa9ec8"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>MAX_IMAGES</b>&#160;&#160;&#160;256</td></tr>
 <tr class="separator:a2f6b152f620e16d11f1e68f497fa9ec8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c4836cb9493ce2394abde2810463f9e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a5c4836cb9493ce2394abde2810463f9e">log_msg</a>(fmt_, ...)&#160;&#160;&#160;fprintf(stderr, (fmt_ &quot;\n&quot;), ##__VA_ARGS__)</td></tr>
 <tr class="separator:a5c4836cb9493ce2394abde2810463f9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -165,6 +170,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:ad76aafdb31988651d462a21449beb6e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2fbb3e8ba249ecd3e15c2eb80bc6587a"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structqimg__collection__.html">qimg_collection_</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a2fbb3e8ba249ecd3e15c2eb80bc6587a">qimg_collection</a></td></tr>
 <tr class="separator:a2fbb3e8ba249ecd3e15c2eb80bc6587a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5500fcd3cb12c8fa0bcdd96bb52f9fb6"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structqimg__dyn__collection__.html">qimg_dyn_collection_</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a></td></tr>
+<tr class="separator:a5500fcd3cb12c8fa0bcdd96bb52f9fb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9453c8caab1e8edb2071ea03a94f52a"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="qimg_8c.html#a9365807ce1e0ab1cf2e3f36dca8959b9">qimg_position_</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#ab9453c8caab1e8edb2071ea03a94f52a">qimg_position</a></td></tr>
 <tr class="separator:ab9453c8caab1e8edb2071ea03a94f52a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9da33a8b32b8fc3d3f043e9de4b39721"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="qimg_8c.html#a04c3eefa8ac082a1688ba1019da055af">qimg_bg_</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a></td></tr>
@@ -217,9 +224,15 @@ Functions</h2></td></tr>
 <tr class="memitem:afc83bc7344e8f7262758179ca6b86b9e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#afc83bc7344e8f7262758179ca6b86b9e">qimg_load_image</a> (char *input_path)</td></tr>
 <tr class="memdesc:afc83bc7344e8f7262758179ca6b86b9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads image at given path.  <a href="qimg_8c.html#afc83bc7344e8f7262758179ca6b86b9e">More...</a><br /></td></tr>
 <tr class="separator:afc83bc7344e8f7262758179ca6b86b9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a13126eb61300fde7bc315247a733bbf0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="qimg_8c.html#a2fbb3e8ba249ecd3e15c2eb80bc6587a">qimg_collection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a13126eb61300fde7bc315247a733bbf0">qimg_load_images</a> (char **input_paths, int n_inputs)</td></tr>
-<tr class="memdesc:a13126eb61300fde7bc315247a733bbf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads multiple images to a collection.  <a href="qimg_8c.html#a13126eb61300fde7bc315247a733bbf0">More...</a><br /></td></tr>
-<tr class="separator:a13126eb61300fde7bc315247a733bbf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd19eaba203350240bb8d3a86497e460"><td class="memItemLeft" align="right" valign="top"><a class="el" href="qimg_8c.html#a2fbb3e8ba249ecd3e15c2eb80bc6587a">qimg_collection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#afd19eaba203350240bb8d3a86497e460">qimg_load_images</a> (char **input_paths, int n_inputs, int offset)</td></tr>
+<tr class="memdesc:afd19eaba203350240bb8d3a86497e460"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads multiple images to a collection.  <a href="qimg_8c.html#afd19eaba203350240bb8d3a86497e460">More...</a><br /></td></tr>
+<tr class="separator:afd19eaba203350240bb8d3a86497e460"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a4704a4820f63853b49f58b45f9da37"><td class="memItemLeft" align="right" valign="top"><a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a2a4704a4820f63853b49f58b45f9da37">qimg_init_dyn_collection</a> (char **input_paths, int n_inputs)</td></tr>
+<tr class="memdesc:a2a4704a4820f63853b49f58b45f9da37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a dynamic collection and loads first images to it.  <a href="qimg_8c.html#a2a4704a4820f63853b49f58b45f9da37">More...</a><br /></td></tr>
+<tr class="separator:a2a4704a4820f63853b49f58b45f9da37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13b7cbc7a4c152d0c271bce5ea94c2f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a13b7cbc7a4c152d0c271bce5ea94c2f9">qimg_get_next</a> (<a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a> *col)</td></tr>
+<tr class="memdesc:a13b7cbc7a4c152d0c271bce5ea94c2f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get next image from a dynamic collection.  <a href="qimg_8c.html#a13b7cbc7a4c152d0c271bce5ea94c2f9">More...</a><br /></td></tr>
+<tr class="separator:a13b7cbc7a4c152d0c271bce5ea94c2f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb04477142cb034b9d85b0f5e9b96c06"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#acb04477142cb034b9d85b0f5e9b96c06">qimg_resize_image</a> (<a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *im, <a class="el" href="qimg_8c.html#a20a0dcd57b9e75cfbf0e0750642c47be">qimg_resolution</a> dest_res)</td></tr>
 <tr class="memdesc:acb04477142cb034b9d85b0f5e9b96c06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resizes an image.  <a href="qimg_8c.html#acb04477142cb034b9d85b0f5e9b96c06">More...</a><br /></td></tr>
 <tr class="separator:acb04477142cb034b9d85b0f5e9b96c06"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -253,9 +266,9 @@ Functions</h2></td></tr>
 <tr class="memitem:adb0a3df75620ef9ad35735d1423c2b5b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#adb0a3df75620ef9ad35735d1423c2b5b">qimg_free_image</a> (<a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *im)</td></tr>
 <tr class="memdesc:adb0a3df75620ef9ad35735d1423c2b5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frees an image from memory.  <a href="qimg_8c.html#adb0a3df75620ef9ad35735d1423c2b5b">More...</a><br /></td></tr>
 <tr class="separator:adb0a3df75620ef9ad35735d1423c2b5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fe18140fb3495e3b423297a77034f9e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a6fe18140fb3495e3b423297a77034f9e">qimg_draw_images</a> (<a class="el" href="qimg_8c.html#a2fbb3e8ba249ecd3e15c2eb80bc6587a">qimg_collection</a> *col, <a class="el" href="qimg_8c.html#a2f0438ddd6d4cfb00ebf628b678e975e">qimg_fb</a> *fb, <a class="el" href="qimg_8c.html#ab9453c8caab1e8edb2071ea03a94f52a">qimg_position</a> pos, <a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a> bg, bool repaint, int delay_s)</td></tr>
-<tr class="memdesc:a6fe18140fb3495e3b423297a77034f9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws a collection of images on the framebuffer.  <a href="qimg_8c.html#a6fe18140fb3495e3b423297a77034f9e">More...</a><br /></td></tr>
-<tr class="separator:a6fe18140fb3495e3b423297a77034f9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af98f34ddb5cff7e89f1e83b75c2d1501"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#af98f34ddb5cff7e89f1e83b75c2d1501">qimg_draw_images</a> (<a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a> *col, <a class="el" href="qimg_8c.html#a2f0438ddd6d4cfb00ebf628b678e975e">qimg_fb</a> *fb, <a class="el" href="qimg_8c.html#ab9453c8caab1e8edb2071ea03a94f52a">qimg_position</a> pos, <a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a> bg, bool repaint, int delay_s)</td></tr>
+<tr class="memdesc:af98f34ddb5cff7e89f1e83b75c2d1501"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws a collection of images on the framebuffer.  <a href="qimg_8c.html#af98f34ddb5cff7e89f1e83b75c2d1501">More...</a><br /></td></tr>
+<tr class="separator:af98f34ddb5cff7e89f1e83b75c2d1501"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d0a1ec7befabd32085248ad81489421"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a8d0a1ec7befabd32085248ad81489421">qimg_draw_image</a> (<a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *im, <a class="el" href="qimg_8c.html#a2f0438ddd6d4cfb00ebf628b678e975e">qimg_fb</a> *fb, <a class="el" href="qimg_8c.html#ab9453c8caab1e8edb2071ea03a94f52a">qimg_position</a> pos, <a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a> bg, bool repaint, int delay_s)</td></tr>
 <tr class="memdesc:a8d0a1ec7befabd32085248ad81489421"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws an image on the framebuffer.  <a href="qimg_8c.html#a8d0a1ec7befabd32085248ad81489421">More...</a><br /></td></tr>
 <tr class="separator:a8d0a1ec7befabd32085248ad81489421"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -450,18 +463,18 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 
 </div>
 </div>
-<a id="a2f6b152f620e16d11f1e68f497fa9ec8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2f6b152f620e16d11f1e68f497fa9ec8">&#9670;&nbsp;</a></span>MAX_IMAGES</h2>
+<a id="ad4d796b98c583d49e83adabd74a63bf6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4d796b98c583d49e83adabd74a63bf6">&#9670;&nbsp;</a></span>MAX_BUFFER_SIZE</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MAX_IMAGES&#160;&#160;&#160;24</td>
+          <td class="memname">#define MAX_BUFFER_SIZE&#160;&#160;&#160;5</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adjust according to platform limitations </p>
+<p>Maximum number of images to load in the buffer at once </p>
 
 </div>
 </div>
@@ -534,6 +547,21 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
       </table>
 </div><div class="memdoc">
 <p>Represents an RGBA color </p>
+
+</div>
+</div>
+<a id="a5500fcd3cb12c8fa0bcdd96bb52f9fb6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">&#9670;&nbsp;</a></span>qimg_dyn_collection</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structqimg__dyn__collection__.html">qimg_dyn_collection_</a> <a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A dynamic collection of images used to load unlimited amount of inputs. Loads one <a class="el" href="qimg_8c.html#a2fbb3e8ba249ecd3e15c2eb80bc6587a">qimg_collection</a> of <a class="el" href="qimg_8c.html#ad4d796b98c583d49e83adabd74a63bf6">MAX_BUFFER_SIZE</a> images per time and updates it whenever all current images have been read (<code>n_consumed == col.size</code>). </p>
 
 </div>
 </div>
@@ -782,8 +810,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 
 </div>
 </div>
-<a id="a6fe18140fb3495e3b423297a77034f9e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6fe18140fb3495e3b423297a77034f9e">&#9670;&nbsp;</a></span>qimg_draw_images()</h2>
+<a id="af98f34ddb5cff7e89f1e83b75c2d1501"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af98f34ddb5cff7e89f1e83b75c2d1501">&#9670;&nbsp;</a></span>qimg_draw_images()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -791,7 +819,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
         <tr>
           <td class="memname">void qimg_draw_images </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="qimg_8c.html#a2fbb3e8ba249ecd3e15c2eb80bc6587a">qimg_collection</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a> *&#160;</td>
           <td class="paramname"><em>col</em>, </td>
         </tr>
         <tr>
@@ -973,6 +1001,33 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 
 </div>
 </div>
+<a id="a13b7cbc7a4c152d0c271bce5ea94c2f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13b7cbc7a4c152d0c271bce5ea94c2f9">&#9670;&nbsp;</a></span>qimg_get_next()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> * qimg_get_next </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a> *&#160;</td>
+          <td class="paramname"><em>col</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get next image from a dynamic collection. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">col</td><td>dynamic collection </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>image pointer </dd></dl>
+
+</div>
+</div>
 <a id="a60063247e7836abce2e4fcc9a724c1fb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a60063247e7836abce2e4fcc9a724c1fb">&#9670;&nbsp;</a></span>qimg_get_pixel()</h2>
 
@@ -1103,6 +1158,45 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 
 </div>
 </div>
+<a id="a2a4704a4820f63853b49f58b45f9da37"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a4704a4820f63853b49f58b45f9da37">&#9670;&nbsp;</a></span>qimg_init_dyn_collection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a> qimg_init_dyn_collection </td>
+          <td>(</td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>input_paths</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_inputs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initializes a dynamic collection and loads first images to it. </p>
+<p>A dynamic collection loads up to <a class="el" href="qimg_8c.html#ad4d796b98c583d49e83adabd74a63bf6">MAX_BUFFER_SIZE</a> images per time when needed. <a class="el" href="qimg_8c.html#a13b7cbc7a4c152d0c271bce5ea94c2f9" title="Get next image from a dynamic collection.">qimg_get_next</a> should be used to fetch images from a dynamic collection.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">input_paths</td><td>input path vector </td></tr>
+    <tr><td class="paramname">n_inputs</td><td>number of inputs </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
+
+</div>
+</div>
 <a id="afc83bc7344e8f7262758179ca6b86b9e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afc83bc7344e8f7262758179ca6b86b9e">&#9670;&nbsp;</a></span>qimg_load_image()</h2>
 
@@ -1130,8 +1224,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 
 </div>
 </div>
-<a id="a13126eb61300fde7bc315247a733bbf0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13126eb61300fde7bc315247a733bbf0">&#9670;&nbsp;</a></span>qimg_load_images()</h2>
+<a id="afd19eaba203350240bb8d3a86497e460"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd19eaba203350240bb8d3a86497e460">&#9670;&nbsp;</a></span>qimg_load_images()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1146,7 +1240,13 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>n_inputs</em>&#160;</td>
+          <td class="paramname"><em>n_inputs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>offset</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1161,6 +1261,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
   <table class="params">
     <tr><td class="paramname">input_paths</td><td>input path vector </td></tr>
     <tr><td class="paramname">n_inputs</td><td>number of inputs </td></tr>
+    <tr><td class="paramname">offset</td><td>offset in input_paths vector, in case some paths should be omitted. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1313,7 +1414,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
 </div>
 </div>
 </div><!-- contents -->
-<div class="ttc" id="aqimg_8c_html_a5c4836cb9493ce2394abde2810463f9e"><div class="ttname"><a href="qimg_8c.html#a5c4836cb9493ce2394abde2810463f9e">log_msg</a></div><div class="ttdeci">#define log_msg(fmt_,...)</div><div class="ttdef"><b>Definition:</b> qimg.c:163</div></div>
+<div class="ttc" id="aqimg_8c_html_a5c4836cb9493ce2394abde2810463f9e"><div class="ttname"><a href="qimg_8c.html#a5c4836cb9493ce2394abde2810463f9e">log_msg</a></div><div class="ttdeci">#define log_msg(fmt_,...)</div><div class="ttdef"><b>Definition:</b> qimg.c:164</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

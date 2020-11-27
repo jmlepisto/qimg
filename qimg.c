@@ -223,7 +223,7 @@ typedef struct qimg_collection_ {
 
 /** A dynamic collection of images used to load unlimited amount of inputs.
  * Loads one #qimg_collection of #MAX_BUFFER_SIZE images per time and updates
- * it whenever all current images have been read.
+ * it whenever all current images have been read (`n_consumed == col.size`).
  */
 typedef struct qimg_dyn_collection_ {
     char** input_paths;     /**< input path vector */
@@ -729,19 +729,19 @@ qimg_dyn_collection qimg_init_dyn_collection(char** input_paths, int n_inputs) {
     return dcol;
 }
 
-qimg_image* qimg_get_next(qimg_dyn_collection* col) {
-    if (col->n_consumed == col->col.size) {
-        qimg_free_collection(&col->col);
-        int left = col->size - col->idx;
+qimg_image* qimg_get_next(qimg_dyn_collection* dcol) {
+    if (dcol->n_consumed == dcol->col.size) {
+        qimg_free_collection(&dcol->col);
+        int left = dcol->size - dcol->idx;
         int n = (left < MAX_BUFFER_SIZE) ? left : MAX_BUFFER_SIZE;
-        int offset = col->idx;
-        col->col = qimg_load_images(col->input_paths, n, offset);
-        col->n_consumed = 0;
+        int offset = dcol->idx;
+        dcol->col = qimg_load_images(dcol->input_paths, n, offset);
+        dcol->n_consumed = 0;
     }
 
-    ++col->idx;
-    ++col->n_consumed;
-    return &col->col.images[col->col.idx++];
+    ++dcol->idx;
+    ++dcol->n_consumed;
+    return &dcol->col.images[dcol->col.idx++];
 }
 
 void qimg_free_image(qimg_image* im) {
@@ -967,7 +967,7 @@ int main(int argc, char *argv[]) {
     else
         fb = qimg_open_fb(fb_idx);
 
-    /* Load images */
+    /* Initialize dynamic collection */
     qimg_dyn_collection dcol = qimg_init_dyn_collection(input_paths, n_inputs);
 
     /* Setup exit hooks on signals */
