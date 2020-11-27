@@ -128,6 +128,12 @@
  ** them. As with the previous examples `-c` will hide the cursor.
  ** Setting image positioning, scaling or background colors will affect every
  ** image in the slideshow.
+ **
+ ** To loop the slideshow indefinitely, pass:
+ **
+ **     qimg -loop
+ **
+ **
  **/
 
 #define STB_IMAGE_IMPLEMENTATION
