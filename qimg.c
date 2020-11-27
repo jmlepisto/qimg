@@ -156,8 +156,9 @@
 /** Standard terminal control sequence for hiding cursor */
 #define CUR_HIDE "\e[?25l"
 
-/** Adjust according to platform limitations */
-#define MAX_IMAGES 24
+/** Maximum number of images to load in the buffer at once */
+#define MAX_BUFFER_SIZE 5
+#define MAX_IMAGES 256
 
 /** Prints a formatted message to stderr */
 #define log_msg(fmt_, ...)\
@@ -214,10 +215,24 @@ typedef struct qimg_image_ {
 
 /** Represents a collection of loaded images */
 typedef struct qimg_collection_ {
-    int size;                       /**< number of images */
-    char _padding[4];               /**< yeah */
-    qimg_image images[MAX_IMAGES];  /**< image array */
+    int idx;
+    int size;                           /**< number of images */
+    char _padding[8];                   /**< yeah */
+    qimg_image images[MAX_BUFFER_SIZE]; /**< image array */
 } qimg_collection;
+
+/** A dynamic collection of images used to load unlimited amount of inputs.
+ * Loads one #qimg_collection of #MAX_BUFFER_SIZE images per time and updates
+ * it whenever all current images have been read.
+ */
+typedef struct qimg_dyn_collection_ {
+    char** input_paths;     /**< input path vector */
+    int size;               /**< number of inputs */
+    int idx;                /**< current element index */
+    int n_consumed;         /**< number of elements condumed since last load */
+    char _padding[4];       /**< magic */
+    qimg_collection col;    /**< current collection */
+} qimg_dyn_collection;
 
 /** Image position */
 typedef enum qimg_position_ {
@@ -287,6 +302,7 @@ STRING_TO_ENUM_(qimg_bg)
 STRING_TO_ENUM_(qimg_scale)
 
 static volatile bool run = true; /* used to go through cleanup on exit */
+static qimg_scale scale = SCALE_DISABLED;
 static clock_t begin_clk;
 
 /**
@@ -320,9 +336,31 @@ qimg_image qimg_load_image(char* input_path);
  * @brief Loads multiple images to a collection
  * @param input_paths   input path vector
  * @param n_inputs      number of inputs
+ * @param offset        offset in input_paths vector, in case some paths
+ * should be omitted.
  * @return collection of images
  */
-qimg_collection qimg_load_images(char** input_paths, int n_inputs);
+qimg_collection qimg_load_images(char** input_paths, int n_inputs, int offset);
+
+/**
+ * @brief Initializes a dynamic collection and loads first images to it.
+ *
+ * A dynamic collection loads up to #MAX_BUFFER_SIZE images per time when
+ * needed. #qimg_get_next should be used to fetch images from a dynamic
+ * collection.
+ *
+ * @param input_paths   input path vector
+ * @param n_inputs      number of inputs
+ * @return
+ */
+qimg_dyn_collection qimg_init_dyn_collection(char** input_paths, int n_inputs);
+
+/**
+ * @brief Get next image from a dynamic collection
+ * @param col   dynamic collection
+ * @return image pointer
+ */
+qimg_image* qimg_get_next(qimg_dyn_collection* col);
 
 /**
  * @brief Resizes an image
@@ -414,7 +452,7 @@ void qimg_free_image(qimg_image* im);
  * @param repaint   keep repainting the image
  * @param delay_s   delay between images
  */
-void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
+void qimg_draw_images(qimg_dyn_collection* col, qimg_fb* fb, qimg_position pos,
                       qimg_bg bg, bool repaint, int delay_s);
 
 /**
@@ -526,10 +564,16 @@ void qimg_clear_framebuffer(qimg_fb* fb) {
     memset(fb->fbdata, 0, fb->size);
 }
 
-void qimg_draw_images(qimg_collection* col, qimg_fb* fb, qimg_position pos,
+void qimg_draw_images(qimg_dyn_collection* col, qimg_fb* fb, qimg_position pos,
                       qimg_bg bg, bool repaint, int delay_s) {
     for (int i = 0; i < col->size; ++i) {
-        qimg_draw_image(&col->images[i], fb, pos, bg, repaint, delay_s);
+        qimg_image* im = qimg_get_next(col);
+        if (scale != SCALE_DISABLED) {
+            qimg_resolution dest;
+            dest = qimg_get_scaled_dims(im->res, fb->res, scale);
+            qimg_resize_image(im, dest);
+        }
+        qimg_draw_image(im, fb, pos, bg, repaint, delay_s);
         if (!run) /* Draw routine exited via interrupt signal */
             break;
     }
@@ -663,14 +707,41 @@ qimg_image qimg_load_image(char* input_path) {
     return im;
 }
 
-qimg_collection qimg_load_images(char** input_paths, int n_inputs) {
+qimg_collection qimg_load_images(char** input_paths, int n_inputs, int offset) {
     qimg_collection col;
-    int i;
-    for (i = 0; i < n_inputs; ++i) {
-        col.images[i] = qimg_load_image(input_paths[i]);
+    for (int i = 0; i < n_inputs; ++i) {
+        col.images[i] = qimg_load_image(input_paths[offset + i]);
     }
-    col.size = i;
+    col.size = n_inputs;
+    col.idx = 0;
     return col;
+}
+
+qimg_dyn_collection qimg_init_dyn_collection(char** input_paths, int n_inputs) {
+    qimg_dyn_collection dcol;
+    dcol.input_paths = input_paths;
+    dcol.size = n_inputs;
+    dcol.n_consumed = 0;
+    dcol.idx = 0;
+
+    int n = (n_inputs < MAX_BUFFER_SIZE) ? n_inputs : MAX_BUFFER_SIZE;
+    dcol.col = qimg_load_images(input_paths, n, 0);
+    return dcol;
+}
+
+qimg_image* qimg_get_next(qimg_dyn_collection* col) {
+    if (col->n_consumed == col->col.size) {
+        qimg_free_collection(&col->col);
+        int left = col->size - col->idx;
+        int n = (left < MAX_BUFFER_SIZE) ? left : MAX_BUFFER_SIZE;
+        int offset = col->idx;
+        col->col = qimg_load_images(col->input_paths, n, offset);
+        col->n_consumed = 0;
+    }
+
+    ++col->idx;
+    ++col->n_consumed;
+    return &col->col.images[col->col.idx++];
 }
 
 void qimg_free_image(qimg_image* im) {
@@ -684,7 +755,8 @@ void qimg_free_collection(qimg_collection* col) {
 }
 
 bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res) {
-    uint8_t* out_buf = malloc(dest_res.x * dest_res.y * im->c);
+    unsigned long s = dest_res.x * dest_res.y * im->c;
+    uint8_t* out_buf = malloc(s);
     if (stbir_resize_uint8(im->pixels, im->res.x, im->res.y, 0, out_buf,
                            dest_res.x, dest_res.y, 0, im->c)) {
         /* Update data pointer */
@@ -878,7 +950,6 @@ int main(int argc, char *argv[]) {
     bool hide_cursor = false;
     qimg_position pos = POS_TOP_LEFT;
     qimg_bg bg = BG_DISABLED;
-    qimg_scale scale = SCALE_DISABLED;
 
     parse_arguments(argc, argv, &fb_idx, input_paths, &n_inputs, &repaint,
                     &hide_cursor, &pos, &bg, &slide_dly_s, &scale, &fb_path);
@@ -897,16 +968,7 @@ int main(int argc, char *argv[]) {
         fb = qimg_open_fb(fb_idx);
 
     /* Load images */
-    qimg_collection col = qimg_load_images(input_paths, n_inputs);
-
-    /* Resize images if needed */
-    if (scale != SCALE_DISABLED) {
-        qimg_resolution dest;
-        for (int i = 0; i < col.size; ++i) {
-            dest = qimg_get_scaled_dims(col.images[i].res, fb.res, scale);
-            qimg_resize_image(&col.images[i], dest);
-        }
-    }
+    qimg_dyn_collection dcol = qimg_init_dyn_collection(input_paths, n_inputs);
 
     /* Setup exit hooks on signals */
     signal(SIGINT, interrupt_handler);
@@ -914,7 +976,7 @@ int main(int argc, char *argv[]) {
 
     /* Fasten your seatbelts */
     if (hide_cursor) set_cursor_visibility(false);
-    qimg_draw_images(&col, &fb, pos, bg, repaint, slide_dly_s);
+    qimg_draw_images(&dcol, &fb, pos, bg, repaint, slide_dly_s);
 
     /* if cursor is set to hidden and no repaint nor delay is set, the program
      * shall wait indefinitely for user interrupt */
@@ -924,7 +986,7 @@ int main(int argc, char *argv[]) {
     if (repaint || hide_cursor)
         qimg_clear_framebuffer(&fb);
     if (hide_cursor) set_cursor_visibility(true);
-    qimg_free_collection(&col);
+    qimg_free_collection(&dcol.col);
     qimg_free_framebuffer(&fb);
 
     return EXIT_SUCCESS;
