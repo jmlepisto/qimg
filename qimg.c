@@ -305,6 +305,10 @@ static volatile bool run = true; /* used to go through cleanup on exit */
 static qimg_scale scale = SCALE_DISABLED;
 static clock_t begin_clk;
 
+
+/*----------------------------------------------------------------------------*/
+
+
 /**
  * @brief Gets color value of a pixel at given position.
  *
@@ -340,7 +344,8 @@ qimg_image qimg_load_image(char* input_path);
  * should be omitted.
  * @return collection of images
  */
-qimg_collection qimg_load_images(char** input_paths, int n_inputs, int offset);
+qimg_collection qimg_load_collection(char** input_paths, int n_inputs,
+                                     int offset);
 
 /**
  * @brief Initializes a dynamic collection and loads first images to it.
@@ -451,9 +456,10 @@ void qimg_free_image(qimg_image* im);
  * @param bg        background style
  * @param repaint   keep repainting the image
  * @param delay_s   delay between images
+ * @param loop      loop the slideshow images indefinitely
  */
 void qimg_draw_images(qimg_dyn_collection* col, qimg_fb* fb, qimg_position pos,
-                      qimg_bg bg, bool repaint, int delay_s);
+                      qimg_bg bg, bool repaint, int delay_s, bool loop);
 
 /**
  * @brief Draws an image on the framebuffer
@@ -493,6 +499,10 @@ void interrupt_handler(int);
  * @brief Prints usage help
  */
 void print_help(void);
+
+
+/*----------------------------------------------------------------------------*/
+
 
 int get_default_framebuffer_idx() {
     /* Glob search for framebuffer devices */
@@ -564,16 +574,18 @@ void qimg_clear_framebuffer(qimg_fb* fb) {
     memset(fb->fbdata, 0, fb->size);
 }
 
-void qimg_draw_images(qimg_dyn_collection* col, qimg_fb* fb, qimg_position pos,
-                      qimg_bg bg, bool repaint, int delay_s) {
-    for (int i = 0; i < col->size; ++i) {
-        qimg_image* im = qimg_get_next(col);
+void qimg_draw_images(qimg_dyn_collection* dcol, qimg_fb* fb, qimg_position pos,
+                      qimg_bg bg, bool repaint, int delay_s, bool loop) {
+    int i = 0;
+    while (i < dcol->size || (loop && dcol->size > 1)) {
+        qimg_image* im = qimg_get_next(dcol);
         if (scale != SCALE_DISABLED) {
             qimg_resolution dest;
             dest = qimg_get_scaled_dims(im->res, fb->res, scale);
             qimg_resize_image(im, dest);
         }
         qimg_draw_image(im, fb, pos, bg, repaint, delay_s);
+        ++i;
         if (!run) /* Draw routine exited via interrupt signal */
             break;
     }
@@ -707,7 +719,7 @@ qimg_image qimg_load_image(char* input_path) {
     return im;
 }
 
-qimg_collection qimg_load_images(char** input_paths, int n_inputs, int offset) {
+qimg_collection qimg_load_collection(char** input_paths, int n_inputs, int offset) {
     qimg_collection col;
     for (int i = 0; i < n_inputs; ++i) {
         col.images[i] = qimg_load_image(input_paths[offset + i]);
@@ -724,8 +736,9 @@ qimg_dyn_collection qimg_init_dyn_collection(char** input_paths, int n_inputs) {
     dcol.n_consumed = 0;
     dcol.idx = 0;
 
+    /* Load first batch */
     int n = (n_inputs < MAX_BUFFER_SIZE) ? n_inputs : MAX_BUFFER_SIZE;
-    dcol.col = qimg_load_images(input_paths, n, 0);
+    dcol.col = qimg_load_collection(input_paths, n, 0);
     return dcol;
 }
 
@@ -735,12 +748,18 @@ qimg_image* qimg_get_next(qimg_dyn_collection* dcol) {
         int left = dcol->size - dcol->idx;
         int n = (left < MAX_BUFFER_SIZE) ? left : MAX_BUFFER_SIZE;
         int offset = dcol->idx;
-        dcol->col = qimg_load_images(dcol->input_paths, n, offset);
+        dcol->col = qimg_load_collection(dcol->input_paths, n, offset);
         dcol->n_consumed = 0;
     }
 
     ++dcol->idx;
     ++dcol->n_consumed;
+
+    if (dcol->idx == dcol->size) {
+        dcol->idx = 0;
+        dcol->n_consumed = dcol->size; /* trigger image loading */
+    }
+
     return &dcol->col.images[dcol->col.idx++];
 }
 
@@ -851,6 +870,7 @@ void print_help() {
            "-delay <delay>, Slideshow interval in seconds (default 5s).\n"
            "                If used with a single image, the image is displayed\n"
            "                for <delay> seconds.\n"
+           "-loop           Loop the slideshow indefinitely.\n"
            "\n"
            "Generic framebuffer operations:\n"
            "(Use one at a time, cannot be joined with other operations)\n"
@@ -861,7 +881,7 @@ void print_help() {
 void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                      int* n_inputs, bool* refresh, bool* hide_cursor,
                      qimg_position* pos, qimg_bg* bg, int* slide_delay_s,
-                     qimg_scale* scale, char** fb_path) {
+                     qimg_scale* scale, char** fb_path, bool* loop) {
     assertf(argc > 1, "Arguments missing");
     int opts = 0;
     for (int i = 1; i < argc; ++i) {
@@ -909,6 +929,9 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
                 ++opts;
                 *fb_path = argv[i];
             }
+        } else if (strcmp(argv[i], "-loop") == 0) {
+            ++opts;
+            *loop = true;
         }
 
 
@@ -948,11 +971,13 @@ int main(int argc, char *argv[]) {
     char* fb_path = NULL;
     bool repaint = false;
     bool hide_cursor = false;
+    bool loop = false;
     qimg_position pos = POS_TOP_LEFT;
     qimg_bg bg = BG_DISABLED;
 
     parse_arguments(argc, argv, &fb_idx, input_paths, &n_inputs, &repaint,
-                    &hide_cursor, &pos, &bg, &slide_dly_s, &scale, &fb_path);
+                    &hide_cursor, &pos, &bg, &slide_dly_s, &scale, &fb_path,
+                    &loop);
 
     assertf(n_inputs, "No input file");
     if (fb_idx == -1)
@@ -976,7 +1001,7 @@ int main(int argc, char *argv[]) {
 
     /* Fasten your seatbelts */
     if (hide_cursor) set_cursor_visibility(false);
-    qimg_draw_images(&dcol, &fb, pos, bg, repaint, slide_dly_s);
+    qimg_draw_images(&dcol, &fb, pos, bg, repaint, slide_dly_s, loop);
 
     /* if cursor is set to hidden and no repaint nor delay is set, the program
      * shall wait indefinitely for user interrupt */
