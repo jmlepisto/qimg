@@ -455,7 +455,10 @@ void qimg_free_collection(qimg_collection* col);
 void qimg_free_image(qimg_image* im);
 
 /**
- * @brief Draws a collection of images on the framebuffer
+ * @brief Draws a dynamic collection of images on the framebuffer
+ *
+ * Images are loaded in batches and resized right before drawing if needed.
+ *
  * @param col       image collection
  * @param fb        target framebuffer
  * @param pos       image positioning
@@ -771,7 +774,7 @@ qimg_image* qimg_get_next(qimg_dyn_collection* dcol) {
 
 void qimg_free_image(qimg_image* im) {
     if (im->pixels)
-    free(im->pixels);
+        free(im->pixels);
 }
 
 void qimg_free_collection(qimg_collection* col) {

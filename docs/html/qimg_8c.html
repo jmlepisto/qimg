@@ -267,7 +267,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:adb0a3df75620ef9ad35735d1423c2b5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frees an image from memory.  <a href="qimg_8c.html#adb0a3df75620ef9ad35735d1423c2b5b">More...</a><br /></td></tr>
 <tr class="separator:adb0a3df75620ef9ad35735d1423c2b5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a289b9e904cbe852225b925bf38bcf862"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a289b9e904cbe852225b925bf38bcf862">qimg_draw_images</a> (<a class="el" href="qimg_8c.html#a5500fcd3cb12c8fa0bcdd96bb52f9fb6">qimg_dyn_collection</a> *col, <a class="el" href="qimg_8c.html#a2f0438ddd6d4cfb00ebf628b678e975e">qimg_fb</a> *fb, <a class="el" href="qimg_8c.html#ab9453c8caab1e8edb2071ea03a94f52a">qimg_position</a> pos, <a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a> bg, bool repaint, int delay_s, bool loop)</td></tr>
-<tr class="memdesc:a289b9e904cbe852225b925bf38bcf862"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws a collection of images on the framebuffer.  <a href="qimg_8c.html#a289b9e904cbe852225b925bf38bcf862">More...</a><br /></td></tr>
+<tr class="memdesc:a289b9e904cbe852225b925bf38bcf862"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws a dynamic collection of images on the framebuffer.  <a href="qimg_8c.html#a289b9e904cbe852225b925bf38bcf862">More...</a><br /></td></tr>
 <tr class="separator:a289b9e904cbe852225b925bf38bcf862"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d0a1ec7befabd32085248ad81489421"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="qimg_8c.html#a8d0a1ec7befabd32085248ad81489421">qimg_draw_image</a> (<a class="el" href="qimg_8c.html#ad76aafdb31988651d462a21449beb6e9">qimg_image</a> *im, <a class="el" href="qimg_8c.html#a2f0438ddd6d4cfb00ebf628b678e975e">qimg_fb</a> *fb, <a class="el" href="qimg_8c.html#ab9453c8caab1e8edb2071ea03a94f52a">qimg_position</a> pos, <a class="el" href="qimg_8c.html#a9da33a8b32b8fc3d3f043e9de4b39721">qimg_bg</a> bg, bool repaint, int delay_s)</td></tr>
 <tr class="memdesc:a8d0a1ec7befabd32085248ad81489421"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws an image on the framebuffer.  <a href="qimg_8c.html#a8d0a1ec7befabd32085248ad81489421">More...</a><br /></td></tr>
@@ -867,7 +867,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, ch
       </table>
 </div><div class="memdoc">
 
-<p>Draws a collection of images on the framebuffer. </p>
+<p>Draws a dynamic collection of images on the framebuffer. </p>
+<p>Images are loaded in batches and resized right before drawing if needed.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">col</td><td>image collection </td></tr>
