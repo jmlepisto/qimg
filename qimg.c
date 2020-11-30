@@ -190,13 +190,13 @@
 typedef enum { false, true } bool;
 
 /** Represents resolution with horizontal and vertical pixel counts */
-typedef struct qimg_resolution_ {
+typedef struct qimg_point {
     int x;  /**< horizontal resolution */
     int y;  /**< vertical resolution */
-} qimg_resolution;
+} qimg_point;
 
 /** Represents an RGBA color */
-typedef struct qimg_color_ {
+typedef struct qimg_color {
     uint8_t r;
     uint8_t g;
     uint8_t b;
@@ -204,23 +204,23 @@ typedef struct qimg_color_ {
 } qimg_color;
 
 /** Represents an opened frambuffer instance */
-typedef struct qimg_fb_ {
-    qimg_resolution res;            /**< framebuffer resolution */
+typedef struct qimg_fb {
+    qimg_point res;            /**< framebuffer resolution */
     unsigned int size;              /**< framebuffer size */
     int fbfd;                       /**< framebuffer file descriptor */
     char* fbdata;                   /**< framebuffer data pointer */
 } qimg_fb;
 
 /** Represents a loaded image */
-typedef struct qimg_image_ {
-    qimg_resolution res;            /**< resolution */
+typedef struct qimg_image {
+    qimg_point res;            /**< resolution */
     int c;                          /**< channels */
     char _padding[4];               /**< guess what */
     uint8_t* pixels;                /**< image data pointer */
 } qimg_image;
 
 /** Represents a collection of loaded images */
-typedef struct qimg_collection_ {
+typedef struct qimg_collection {
     int idx;
     int size;                           /**< number of images */
     char _padding[8];                   /**< yeah */
@@ -231,7 +231,7 @@ typedef struct qimg_collection_ {
  * Loads one #qimg_collection of #MAX_BUFFER_SIZE images per time and updates
  * it whenever all current images have been read (`n_consumed == col.size`).
  */
-typedef struct qimg_dyn_collection_ {
+typedef struct qimg_dyn_collection {
     char** input_paths;     /**< input path vector */
     int size;               /**< number of inputs */
     int idx;                /**< current element index */
@@ -241,7 +241,7 @@ typedef struct qimg_dyn_collection_ {
 } qimg_dyn_collection;
 
 /** Image position */
-typedef enum qimg_position_ {
+typedef enum qimg_position {
     POS_CENTERED,
     POS_TOP_LEFT,
     POS_TOP_RIGHT,
@@ -250,7 +250,7 @@ typedef enum qimg_position_ {
 } qimg_position;
 
 /** Framebuffer background color */
-typedef enum qimg_bg_ {
+typedef enum qimg_bg {
     BG_BLACK,
     BG_WHITE,
     BG_RED,
@@ -260,7 +260,7 @@ typedef enum qimg_bg_ {
 } qimg_bg;
 
 /** Image scale types */
-typedef enum qimg_scale_ {
+typedef enum qimg_scale {
     SCALE_DISABLED, /**< no scaling applied */
     SCALE_FIT,      /**< image scaled to fit the screen,
                     aspect ratio maintained */
@@ -379,7 +379,7 @@ qimg_image* qimg_get_next(qimg_dyn_collection* col);
  * @param dest_res  target resolution
  * @return true if resizing succeeded, false if not
  */
-bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res);
+bool qimg_resize_image(qimg_image* im, qimg_point dest_res);
 
 /**
  * @brief Calculates target dimensions for image when viewed on a viewport of
@@ -392,7 +392,7 @@ bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res);
  * @param scale     scale style
  * @return target dimensions
  */
-qimg_resolution qimg_get_scaled_dims(qimg_resolution src, qimg_resolution vp,
+qimg_point qimg_get_scaled_dims(qimg_point src, qimg_point vp,
                                      qimg_scale scale);
 
 /**
@@ -485,6 +485,36 @@ void qimg_draw_images(qimg_dyn_collection* col, qimg_fb* fb, qimg_position pos,
  */
 void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
                      bool repaint, int delay_s);
+
+/**
+ * @brief Translates framebuffer coordinates to image coordinates based on given
+ * image positioning.
+ * @param pos   image position
+ * @param im    image pointer
+ * @param fb    framebuffer pointer
+ * @param x     framebuffer coordinate x
+ * @param y     framebuffer coordinate y
+ * @return translated coordinates
+ */
+qimg_point qimg_translate_coords(qimg_position pos, qimg_image* im, qimg_fb* fb,
+                                 int x, int y);
+
+/**
+ * @brief Draws a data buffer to the framebuffer with optional repainting and
+ * delays.
+ *
+ * Note that data buffer must be at least the same size as the framebuffer.
+ *
+ * If delay_s <= 0, it is not applied. In this case the image is drawn
+ * indefinitely if repaint is set to true. If delay_s > 0 and repaint is set to
+ * false, the function will simply wait delay_s seconds before returning.
+ *
+ * @param fb        framebuffer
+ * @param buf       data buffer
+ * @param delay_s   time to keep the image on the framebuffer
+ * @param repaint   keep repainting the image
+ */
+void qimg_draw_buffer(qimg_fb* fb, char* buf, int delay_s, bool repaint);
 
 /**
  * @brief Searches for default framebuffer index.
@@ -589,7 +619,7 @@ void qimg_draw_images(qimg_dyn_collection* dcol, qimg_fb* fb, qimg_position pos,
     while (i < dcol->size || (loop && dcol->size > 1)) {
         qimg_image* im = qimg_get_next(dcol);
         if (scale != SCALE_DISABLED) {
-            qimg_resolution dest;
+            qimg_point dest;
             dest = qimg_get_scaled_dims(im->res, fb->res, scale);
             qimg_resize_image(im, dest);
         }
@@ -601,58 +631,39 @@ void qimg_draw_images(qimg_dyn_collection* dcol, qimg_fb* fb, qimg_position pos,
 
 }
 
-void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
-                     bool repaint, int delay_s) {
-    char* buf = malloc(fb->size);
-    memcpy(buf, fb->fbdata, fb->size);
-    qimg_color c;
-    int offs;
-    int x, y;
-    uint32_t delay_ms = delay_s * 1000;
-    bool delay_set = (delay_s > 0);
-    for (int x_ = 0; x_ < fb->res.x; ++x_) { /* This is embarassingly parallel */
-        for (int y_ = 0; y_ < fb->res.y; ++y_) {
-            switch (pos) {
-            case POS_TOP_LEFT:
-                x = x_;
-                y = y_;
-                break;
-            case POS_TOP_RIGHT:
-                x = x_ - (fb->res.x - im->res.x);
-                y = y_;
-                break;
-            case POS_BOTTOM_RIGHT:
-                x = x_ - (fb->res.x - im->res.x);
-                y = y_ - (fb->res.y - im->res.y);
-                break;
-            case POS_BOTTOM_LEFT:
-                x = x_;
-                y = y_ - (fb->res.y - im->res.y);
-                break;
-            case POS_CENTERED:
-                x = x_ - ((fb->res.x / 2) - (im->res.x / 2));
-                y = y_ - ((fb->res.y / 2) - (im->res.y / 2));
-                break;
-            }
 
-            if (x >= im->res.x || y >= im->res.y || x < 0 || y < 0) {
-                if (bg == BG_DISABLED) {
-                    continue; /* Keep the framebuffer as-is */
-                } else {
-                    c = qimg_get_bg_color(bg);
-                }
-            } else {
-                c = qimg_get_pixel(im, x, y);
-            }
-
-            offs = (y_ * fb->res.x + x_) * 4;
-            buf[offs + 0] = (char) c.b;
-            buf[offs + 1] = (char) c.g;
-            buf[offs + 2] = (char) c.r;
-            buf[offs + 3] = (char) c.a;
-        }
+qimg_point qimg_translate_coords(qimg_position pos, qimg_image* im, qimg_fb* fb,
+                                 int x, int y) {
+    qimg_point out;
+    switch (pos) {
+    case POS_TOP_LEFT:
+        out.x = x;
+        out.y = y;
+        break;
+    case POS_TOP_RIGHT:
+        out.x = x - (fb->res.x - im->res.x);
+        out.y = y;
+        break;
+    case POS_BOTTOM_RIGHT:
+        out.x = x - (fb->res.x - im->res.x);
+        out.y = y - (fb->res.y - im->res.y);
+        break;
+    case POS_BOTTOM_LEFT:
+        out.x = x;
+        out.y = y - (fb->res.y - im->res.y);
+        break;
+    case POS_CENTERED:
+        out.x = x - ((fb->res.x / 2) - (im->res.x / 2));
+        out.y = y - ((fb->res.y / 2) - (im->res.y / 2));
+        break;
     }
 
+    return out;
+}
+
+void qimg_draw_buffer(qimg_fb* fb, char* buf, int delay_s, bool repaint) {
+    uint32_t delay_ms = delay_s * 1000;
+    bool delay_set = (delay_s > 0);
     uint32_t start_ticks = qimg_get_millis();
     do {
         memcpy(fb->fbdata, buf, fb->size);
@@ -674,6 +685,41 @@ void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
             break;
         }
     } while (run);
+}
+
+void qimg_draw_image(qimg_image* im, qimg_fb* fb, qimg_position pos, qimg_bg bg,
+                     bool repaint, int delay_s) {
+    char* buf = malloc(fb->size);
+    memcpy(buf, fb->fbdata, fb->size);
+    qimg_color c;
+    int offs, x, y;
+
+    for (int x_ = 0; x_ < fb->res.x; ++x_) { /* This is embarassingly parallel */
+        for (int y_ = 0; y_ < fb->res.y; ++y_) {
+            /* Translate framebuffer coordinates to image coordinates */
+            qimg_point t = qimg_translate_coords(pos, im, fb, x_, y_);
+            x = t.x;
+            y = t.y;
+
+            if (x >= im->res.x || y >= im->res.y || x < 0 || y < 0) {
+                if (bg == BG_DISABLED) {
+                    continue; /* Keep the framebuffer as-is */
+                } else {
+                    c = qimg_get_bg_color(bg);
+                }
+            } else {
+                c = qimg_get_pixel(im, x, y);
+            }
+
+            offs = (y_ * fb->res.x + x_) * 4;
+            buf[offs + 0] = (char) c.b;
+            buf[offs + 1] = (char) c.g;
+            buf[offs + 2] = (char) c.r;
+            buf[offs + 3] = (char) c.a;
+        }
+    }
+
+    qimg_draw_buffer(fb, buf, delay_s, repaint);
     free(buf);
 }
 
@@ -782,7 +828,7 @@ void qimg_free_collection(qimg_collection* col) {
         qimg_free_image(&col->images[i]);
 }
 
-bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res) {
+bool qimg_resize_image(qimg_image* im, qimg_point dest_res) {
     unsigned long s = dest_res.x * dest_res.y * im->c;
     uint8_t* out_buf = malloc(s);
     if (stbir_resize_uint8(im->pixels, im->res.x, im->res.y, 0, out_buf,
@@ -799,9 +845,9 @@ bool qimg_resize_image(qimg_image* im, qimg_resolution dest_res) {
     return false;
 }
 
-qimg_resolution qimg_get_scaled_dims(qimg_resolution src, qimg_resolution vp,
+qimg_point qimg_get_scaled_dims(qimg_point src, qimg_point vp,
                                      qimg_scale scale) {
-    qimg_resolution r;
+    qimg_point r;
     float p;
     float px = (float) vp.x / (float) src.x;
     float py = (float) vp.y / (float) src.y;
