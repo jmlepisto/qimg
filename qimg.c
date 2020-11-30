@@ -189,10 +189,10 @@
 
 typedef enum { false, true } bool;
 
-/** Represents resolution with horizontal and vertical pixel counts */
+/** Represents a pair of values commonly used as coordinates or resolution */
 typedef struct qimg_point {
-    int x;  /**< horizontal resolution */
-    int y;  /**< vertical resolution */
+    int x;
+    int y;
 } qimg_point;
 
 /** Represents an RGBA color */
@@ -630,7 +630,6 @@ void qimg_draw_images(qimg_dyn_collection* dcol, qimg_fb* fb, qimg_position pos,
     }
 
 }
-
 
 qimg_point qimg_translate_coords(qimg_position pos, qimg_image* im, qimg_fb* fb,
                                  int x, int y) {
