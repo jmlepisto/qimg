@@ -205,7 +205,7 @@ typedef struct qimg_color {
 
 /** Represents an opened frambuffer instance */
 typedef struct qimg_fb {
-    qimg_point res;            /**< framebuffer resolution */
+    qimg_point res;                 /**< framebuffer resolution */
     unsigned int size;              /**< framebuffer size */
     int fbfd;                       /**< framebuffer file descriptor */
     char* fbdata;                   /**< framebuffer data pointer */
@@ -213,7 +213,7 @@ typedef struct qimg_fb {
 
 /** Represents a loaded image */
 typedef struct qimg_image {
-    qimg_point res;            /**< resolution */
+    qimg_point res;                 /**< resolution */
     int c;                          /**< channels */
     char _padding[4];               /**< guess what */
     uint8_t* pixels;                /**< image data pointer */
