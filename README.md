@@ -28,14 +28,14 @@ existing solutions too complex and heavyweight for such a simple task.
 - `-b <framebuffer index>` selects which frambuffer to use. Defaults to the first one found on the system.
 - `-c` will try to hide the terminal cursor and prevent it from refreshing on top of the image.
 - `-r` will repaint the image continuously to prevent anything else from refreshing on top of the image.
-- `-d <delay>` will set slideshow delay.
+- `-delay <seconds>` will set slideshow delay.
 - `-pos <position>` is used set image position.
 - `-bg <color>` is used to set background color.
 - `-scale <scale style>` is used to set scale style. Useful for scaling images to fullscreen resolution.
 
 Example usage:
 
-`qimg -c -d 2 -pos c -scale fit input.jpg input2.jpg`
+`qimg -c -delay 2 -pos c -scale fit input.jpg input2.jpg`
 
 This will show the two files as a slideshow on the default framebuffer, scaled to fit the screen and centered. 
 `-c` will cause the cursor to be hidden which prevents the terminal of refreshing on top of the images.
