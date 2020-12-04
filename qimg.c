@@ -224,7 +224,7 @@ typedef struct qimg_collection {
     int idx;
     int size;                           /**< number of images */
     char _padding[8];                   /**< yeah */
-    qimg_image images[MAX_BUFFER_SIZE]; /**< image array */
+    qimg_image* images[MAX_BUFFER_SIZE];/**< image array */
 } qimg_collection;
 
 /** A dynamic collection of images used to load unlimited amount of inputs.
@@ -237,7 +237,7 @@ typedef struct qimg_dyn_collection {
     int idx;                /**< current element index */
     int n_consumed;         /**< number of elements condumed since last load */
     char _padding[4];       /**< magic */
-    qimg_collection col;    /**< current collection */
+    qimg_collection* col;   /**< current collection */
 } qimg_dyn_collection;
 
 /** Image position */
@@ -340,7 +340,7 @@ qimg_color qimg_get_bg_color(qimg_bg bg);
  * @param input_path    input path
  * @return loaded image, exits if loading errors
  */
-qimg_image qimg_load_image(char* input_path);
+qimg_image* qimg_load_image(char* input_path);
 
 /**
  * @brief Loads multiple images to a collection
@@ -350,7 +350,7 @@ qimg_image qimg_load_image(char* input_path);
  * should be omitted.
  * @return collection of images
  */
-qimg_collection qimg_load_collection(char** input_paths, int n_inputs,
+qimg_collection* qimg_load_collection(char** input_paths, int n_inputs,
                                      int offset);
 
 /**
@@ -364,7 +364,7 @@ qimg_collection qimg_load_collection(char** input_paths, int n_inputs,
  * @param n_inputs      number of inputs
  * @return
  */
-qimg_dyn_collection qimg_init_dyn_collection(char** input_paths, int n_inputs);
+qimg_dyn_collection* qimg_init_dyn_collection(char** input_paths, int n_inputs);
 
 /**
  * @brief Get next image from a dynamic collection
@@ -400,14 +400,14 @@ qimg_point qimg_get_scaled_dims(qimg_point src, qimg_point vp,
  * @param idx   framebuffer index (/dev/fb<idx>)
  * @return framebuffer instance
  */
-qimg_fb qimg_open_fb(int idx);
+qimg_fb* qimg_open_fb(int idx);
 
 /**
  * @brief Opens framebuffer from given path
  * @param path  framebuffer path
  * @return framebuffer instance
  */
-qimg_fb qimg_open_fb_from_path(const char* path);
+qimg_fb* qimg_open_fb_from_path(const char* path);
 
 
 /**
@@ -447,6 +447,12 @@ void qimg_free_framebuffer(qimg_fb* fb);
  * @param col   target collection
  */
 void qimg_free_collection(qimg_collection* col);
+
+/**
+ * @brief Frees a dynamic collection
+ * @param dcol  target collection
+ */
+void qimg_free_dyn_collection(qimg_dyn_collection* dcol);
 
 /**
  * @brief Frees an image from memory
@@ -556,11 +562,6 @@ int get_default_framebuffer_idx() {
     return atoi(strsep(&globbuf.gl_pathv[0], "fb"));
 }
 
-void qimg_free_framebuffer(qimg_fb* fb) {
-    munmap(fb->fbdata, fb->size);
-    close(fb->fbfd);
-}
-
 uint32_t qimg_get_millis(void) {
     return (uint32_t)((double)(clock() - begin_clk) / CLOCKS_PER_SEC) * 1000;
 }
@@ -576,7 +577,7 @@ void qimg_sleep_ms(uint32_t ms) {
     nanosleep(&ts, NULL);
 }
 
-qimg_fb qimg_open_fb(int idx) {
+qimg_fb* qimg_open_fb(int idx) {
     /* Append device index to the framebuffer device path */
     char idx_buf[FB_IDX_MAX_SIZE];
     assertf(snprintf(idx_buf, FB_IDX_MAX_SIZE, "%d", idx) <
@@ -587,24 +588,24 @@ qimg_fb qimg_open_fb(int idx) {
     return qimg_open_fb_from_path(dev_path);
 }
 
-qimg_fb qimg_open_fb_from_path(const char* path) {
-    qimg_fb fb;
-    fb.fbfd = open(path, O_RDWR);
-    assertf(fb.fbfd >= 0, "Framebuffer device fopen() failed");
+qimg_fb* qimg_open_fb_from_path(const char* path) {
+    qimg_fb* fb = malloc(sizeof(qimg_fb));
+    fb->fbfd = open(path, O_RDWR);
+    assertf(fb->fbfd >= 0, "Framebuffer device fopen() failed");
 
     /* Get framebuffer information */
     struct fb_var_screeninfo vinfo;
-    ioctl(fb.fbfd, FBIOGET_VSCREENINFO, &vinfo);
+    ioctl(fb->fbfd, FBIOGET_VSCREENINFO, &vinfo);
 
-    fb.res.x = (int) vinfo.xres;
-    fb.res.y = (int) vinfo.yres;
+    fb->res.x = (int) vinfo.xres;
+    fb->res.y = (int) vinfo.yres;
     unsigned int fb_bpp = vinfo.bits_per_pixel;
     unsigned int fb_bytes = fb_bpp / 8;
 
     /* Calculate data size and map framebuffer to memory */
-    fb.size = fb.res.x * fb.res.y * fb_bytes;
-    fb.fbdata = mmap(0, fb.size,
-                        PROT_READ | PROT_WRITE, MAP_SHARED, fb.fbfd, (off_t) 0);
+    fb->size = fb->res.x * fb->res.y * fb_bytes;
+    fb->fbdata = mmap(0, fb->size,
+                        PROT_READ | PROT_WRITE, MAP_SHARED, fb->fbfd, (off_t) 0);
 
     return fb;
 }
@@ -766,39 +767,39 @@ qimg_color qimg_get_bg_color(qimg_bg bg) {
     return bg_color;
 }
 
-qimg_image qimg_load_image(char* input_path) {
-    qimg_image im;
-    im.pixels = stbi_load(input_path, &im.res.x, &im.res.y, &im.c, 0);
-    assertf(im.pixels, "Loading image %s failed", input_path);
+qimg_image* qimg_load_image(char* input_path) {
+    qimg_image* im = malloc(sizeof(qimg_image));
+    im->pixels = stbi_load(input_path, &im->res.x, &im->res.y, &im->c, 0);
+    assertf(im->pixels, "Loading image %s failed", input_path);
     return im;
 }
 
-qimg_collection qimg_load_collection(char** input_paths, int n_inputs, int offset) {
-    qimg_collection col;
+qimg_collection* qimg_load_collection(char** input_paths, int n_inputs, int offset) {
+    qimg_collection* col = malloc(sizeof(qimg_collection));
     for (int i = 0; i < n_inputs; ++i) {
-        col.images[i] = qimg_load_image(input_paths[offset + i]);
+        col->images[i] = qimg_load_image(input_paths[offset + i]);
     }
-    col.size = n_inputs;
-    col.idx = 0;
+    col->size = n_inputs;
+    col->idx = 0;
     return col;
 }
 
-qimg_dyn_collection qimg_init_dyn_collection(char** input_paths, int n_inputs) {
-    qimg_dyn_collection dcol;
-    dcol.input_paths = input_paths;
-    dcol.size = n_inputs;
-    dcol.n_consumed = 0;
-    dcol.idx = 0;
+qimg_dyn_collection* qimg_init_dyn_collection(char** input_paths, int n_inputs) {
+    qimg_dyn_collection* dcol = malloc(sizeof(qimg_dyn_collection));
+    dcol->input_paths = input_paths;
+    dcol->size = n_inputs;
+    dcol->n_consumed = 0;
+    dcol->idx = 0;
 
     /* Load first batch */
     int n = (n_inputs < MAX_BUFFER_SIZE) ? n_inputs : MAX_BUFFER_SIZE;
-    dcol.col = qimg_load_collection(input_paths, n, 0);
+    dcol->col = qimg_load_collection(input_paths, n, 0);
     return dcol;
 }
 
 qimg_image* qimg_get_next(qimg_dyn_collection* dcol) {
-    if (dcol->n_consumed == dcol->col.size) {
-        qimg_free_collection(&dcol->col);
+    if (dcol->n_consumed == dcol->col->size) {
+        qimg_free_collection(dcol->col);
         int left = dcol->size - dcol->idx;
         int n = (left < MAX_BUFFER_SIZE) ? left : MAX_BUFFER_SIZE;
         int offset = dcol->idx;
@@ -814,17 +815,7 @@ qimg_image* qimg_get_next(qimg_dyn_collection* dcol) {
         dcol->n_consumed = dcol->size; /* trigger image loading */
     }
 
-    return &dcol->col.images[dcol->col.idx++];
-}
-
-void qimg_free_image(qimg_image* im) {
-    if (im->pixels)
-        free(im->pixels);
-}
-
-void qimg_free_collection(qimg_collection* col) {
-    for (int i = 0; i < col->size; ++i)
-        qimg_free_image(&col->images[i]);
+    return dcol->col->images[dcol->col->idx++];
 }
 
 bool qimg_resize_image(qimg_image* im, qimg_point dest_res) {
@@ -871,6 +862,38 @@ qimg_point qimg_get_scaled_dims(qimg_point src, qimg_point vp,
     }
 
     return r;
+}
+
+void qimg_free_image(qimg_image* im) {
+    if (!im)
+        return;
+    if (im->pixels)
+        free(im->pixels);
+    free(im);
+}
+
+void qimg_free_collection(qimg_collection* col) {
+    if (!col)
+        return;
+    for (int i = 0; i < col->size; ++i)
+        qimg_free_image(col->images[i]);
+    free(col);
+}
+
+void qimg_free_dyn_collection(qimg_dyn_collection* dcol) {
+    if (!dcol)
+        return;
+    qimg_free_collection(dcol->col);
+    free(dcol);
+}
+
+void qimg_free_framebuffer(qimg_fb* fb) {
+    if (!fb)
+        return;
+
+    munmap(fb->fbdata, fb->size);
+    close(fb->fbfd);
+    free(fb);
 }
 
 void set_cursor_visibility(bool visible) {
@@ -998,8 +1021,8 @@ void parse_arguments(int argc, char *argv[], int* fb_idx, char** input,
             ++opts;
             if (*fb_idx == -1)
                 *fb_idx = get_default_framebuffer_idx();
-            qimg_fb fb = qimg_open_fb(*fb_idx);
-            qimg_clear_framebuffer(&fb);
+            qimg_fb* fb = qimg_open_fb(*fb_idx);
+            qimg_clear_framebuffer(fb);
             exit(EXIT_SUCCESS);
         }
     }
@@ -1040,14 +1063,14 @@ int main(int argc, char *argv[]) {
         slide_dly_s = 5;
 
     /* Open framebuffer */
-    qimg_fb fb;
+    qimg_fb* fb;
     if (fb_path)
         fb = qimg_open_fb_from_path(fb_path);
     else
         fb = qimg_open_fb(fb_idx);
 
     /* Initialize dynamic collection */
-    qimg_dyn_collection dcol = qimg_init_dyn_collection(input_paths, n_inputs);
+    qimg_dyn_collection* dcol = qimg_init_dyn_collection(input_paths, n_inputs);
 
     /* Setup exit hooks on signals */
     signal(SIGINT, interrupt_handler);
@@ -1055,7 +1078,7 @@ int main(int argc, char *argv[]) {
 
     /* Fasten your seatbelts */
     if (hide_cursor) set_cursor_visibility(false);
-    qimg_draw_images(&dcol, &fb, pos, bg, repaint, slide_dly_s, loop);
+    qimg_draw_images(dcol, fb, pos, bg, repaint, slide_dly_s, loop);
 
     /* if cursor is set to hidden and no repaint nor delay is set, the program
      * shall wait indefinitely for user interrupt */
@@ -1063,10 +1086,10 @@ int main(int argc, char *argv[]) {
 
     /* Cleanup */
     if (repaint || hide_cursor)
-        qimg_clear_framebuffer(&fb);
+        qimg_clear_framebuffer(fb);
     if (hide_cursor) set_cursor_visibility(true);
-    qimg_free_collection(&dcol.col);
-    qimg_free_framebuffer(&fb);
+    qimg_free_dyn_collection(dcol);
+    qimg_free_framebuffer(fb);
 
     return EXIT_SUCCESS;
 }
