@@ -24,25 +24,25 @@ systems where it would've been nice to view images and I found most of the
 existing solutions too complex and heavyweight for such a simple task.
 
 #### Cool, how do I use Qimg?
-`qimg -h` will teach you the basics. There aren't any fancy features (yet) so basic usage is `qimg [option]... input...`.
+`qimg -h` will teach you the basics. Usage is outlined by `qimg [option]... input...`.
 - `-b <framebuffer index>` selects which frambuffer to use. Defaults to the first one found on the system.
 - `-c` will try to hide the terminal cursor and prevent it from refreshing on top of the image.
 - `-r` will repaint the image continuously to prevent anything else from refreshing on top of the image.
-- `-d <delay>` will set slideshow delay.
+- `-delay <seconds>` will set slideshow delay.
 - `-pos <position>` is used set image position.
 - `-bg <color>` is used to set background color.
 - `-scale <scale style>` is used to set scale style. Useful for scaling images to fullscreen resolution.
 
 Example usage:
 
-`qimg -c -d 2 -pos c -scale fit input.jpg input2.jpg`
+`qimg -c -delay 2 -pos c -scale fit input.jpg input2.jpg`
 
 This will show the two files as a slideshow on the default framebuffer, scaled to fit the screen and centered. 
 `-c` will cause the cursor to be hidden which prevents the terminal of refreshing on top of the images.
 
 Exits via `SIGINT` or `SIGTERM` will trigger cleanups and restore terminal cursor visibility.
 
-Please note that Qimg will ***NOT*** work if an Xorg session is active on the current TTY. 
+Please note that Qimg will ***NOT*** work if an Xorg session or any other framebuffer-overriding services are active on the current TTY. 
 
 #### How to get Qimg
 Building Qimg is easy as everything needed for the build is provided in this repository. 
@@ -50,11 +50,4 @@ However, I will be uploading some prebuilt binaries to [releases](https://github
 and continuous build artifacts can be downloaded from repository [actions](https://github.com/jjstoo/qimg/actions?query=workflow%3ACMake).
 
 
-#### Future plans
-
-- Image centering **done**
-- Image resizing **done**
-- Image slideshows **done**
-
-
-A huge thank you to [stb developers](https://github.com/nothings/stb) for their excellent stb_image library.
+A huge thank you to [stb developers](https://github.com/nothings/stb) for their excellent image libraries.
