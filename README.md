@@ -25,7 +25,8 @@ existing solutions too complex and heavyweight for such a simple task.
 
 #### Cool, how do I use Qimg?
 `qimg -h` will teach you the basics. Usage is outlined by `qimg [option]... input...`.
-- `-b <framebuffer index>` selects which frambuffer to use. Defaults to the first one found on the system.
+- `-d <framebuffer dev>` uses the given framebuffer device or similar mock-up device file.
+- `-b <framebuffer index>` selects which frambuffer to use based on device index.
 - `-c` will try to hide the terminal cursor and prevent it from refreshing on top of the image.
 - `-r` will repaint the image continuously to prevent anything else from refreshing on top of the image.
 - `-delay <seconds>` will set slideshow delay.
